@@ -83,7 +83,7 @@ const events = [
     description:
       "Spend time supporting street children through education and essential supplies.",
     image:
-      "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800",
+      "https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=900",
   },
 ];
 
