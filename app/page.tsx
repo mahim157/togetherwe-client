@@ -14,7 +14,11 @@ import {
   Menu,
   X,
   Globe,
+  Mail,
+  Leaf,
+  Sparkles,
 } from "lucide-react";
+
 const events = [
   {
     title: "Winter Clothes Distribution",
@@ -42,6 +46,33 @@ const events = [
     image:
       "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=900",
     people: "30 Volunteers",
+  },
+  {
+    title: "Food for Everyone",
+    category: "Donation",
+    location: "Uttara, Dhaka",
+    date: "December 02, 2026",
+    image:
+      "https://images.unsplash.com/photo-1593113598332-cd288d649433?w=900",
+    people: "20 Volunteers",
+  },
+  {
+    title: "Community Health Awareness",
+    category: "Awareness",
+    location: "Mohammadpur, Dhaka",
+    date: "December 05, 2026",
+    image:
+      "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=900",
+    people: "15 Volunteers",
+  },
+  {
+    title: "Help for Street Children",
+    category: "Social Work",
+    location: "Farmgate, Dhaka",
+    date: "December 10, 2026",
+    image:
+      "https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=900",
+    people: "28 Volunteers",
   },
 ];
 
@@ -75,15 +106,24 @@ const gallery = [
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [email, setEmail] = useState("");
+
+  const handleNewsletterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!email.trim()) return;
+
+    alert("Thank you for your interest in TogetherWe!");
+    setEmail("");
+  };
 
   return (
     <main className="min-h-screen bg-white text-slate-900">
 
-           {/* NAVBAR */}
+      {/* NAVBAR */}
       <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
 
-          {/* LOGO */}
           <a
             href="/"
             className="flex items-center gap-2"
@@ -98,7 +138,6 @@ export default function Home() {
             </span>
           </a>
 
-          {/* DESKTOP NAVIGATION */}
           <div className="hidden items-center gap-8 text-sm font-medium text-slate-600 md:flex">
             <a href="/" className="text-emerald-600">
               Home
@@ -117,7 +156,6 @@ export default function Home() {
             </a>
           </div>
 
-          {/* DESKTOP AUTH BUTTONS */}
           <div className="hidden items-center gap-3 md:flex">
             <a
               href="/login"
@@ -134,7 +172,6 @@ export default function Home() {
             </a>
           </div>
 
-          {/* MOBILE MENU BUTTON */}
           <button
             type="button"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -145,10 +182,8 @@ export default function Home() {
           >
             {isMenuOpen ? <X size={23} /> : <Menu size={23} />}
           </button>
-
         </div>
 
-        {/* MOBILE NAVIGATION */}
         {isMenuOpen && (
           <div
             id="mobile-navigation"
@@ -205,7 +240,6 @@ export default function Home() {
               >
                 Get Started
               </a>
-
             </div>
           </div>
         )}
@@ -230,33 +264,53 @@ export default function Home() {
 
             <p className="mt-6 max-w-lg text-lg leading-8 text-slate-600">
               Connect with your community, join meaningful social events,
-              and become part of something bigger. Together, let's build
+              and become part of something bigger. Together, let&apos;s build
               a better tomorrow.
             </p>
 
             <div className="mt-9 flex flex-wrap gap-4">
-              <a href="/events" className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-7 py-4 font-semibold text-white shadow-lg shadow-emerald-200 transition hover:-translate-y-1 hover:bg-emerald-700">
+              <a
+                href="/events"
+                className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-7 py-4 font-semibold text-white shadow-lg shadow-emerald-200 transition hover:-translate-y-1 hover:bg-emerald-700"
+              >
                 Explore Events
                 <ArrowRight size={19} />
               </a>
 
-              <a href="/register" className="rounded-full border border-emerald-200 bg-white px-7 py-4 font-semibold text-emerald-700 transition hover:bg-emerald-50">
+              <a
+                href="/register"
+                className="rounded-full border border-emerald-200 bg-white px-7 py-4 font-semibold text-emerald-700 transition hover:bg-emerald-50"
+              >
                 Join Our Community
               </a>
             </div>
 
-            <div className="mt-12 flex flex-wrap gap-8">
+            <div className="mt-12 grid grid-cols-3 gap-4">
               <div>
-                <h3 className="text-3xl font-extrabold text-slate-900">500+</h3>
-                <p className="mt-1 text-sm text-slate-500">Community Members</p>
+                <h3 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">
+                  500+
+                </h3>
+                <p className="mt-1 text-xs text-slate-500 sm:text-sm">
+                  Community Members
+                </p>
               </div>
+
               <div>
-                <h3 className="text-3xl font-extrabold text-slate-900">120+</h3>
-                <p className="mt-1 text-sm text-slate-500">Events Organized</p>
+                <h3 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">
+                  120+
+                </h3>
+                <p className="mt-1 text-xs text-slate-500 sm:text-sm">
+                  Events Organized
+                </p>
               </div>
+
               <div>
-                <h3 className="text-3xl font-extrabold text-slate-900">25+</h3>
-                <p className="mt-1 text-sm text-slate-500">Local Communities</p>
+                <h3 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">
+                  25+
+                </h3>
+                <p className="mt-1 text-xs text-slate-500 sm:text-sm">
+                  Local Communities
+                </p>
               </div>
             </div>
           </div>
@@ -267,17 +321,20 @@ export default function Home() {
             <img
               src="https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=1200"
               alt="Volunteers working together for their community"
-              className="relative h-[420px] w-full rounded-[2rem] object-cover shadow-2xl md:h-[500px]"
+              className="relative h-[360px] w-full rounded-[2rem] object-cover shadow-2xl sm:h-[420px] lg:h-[500px]"
             />
 
-            <div className="absolute -bottom-6 -left-3 rounded-2xl bg-white p-5 shadow-xl md:-left-8">
+            <div className="absolute -bottom-6 left-3 rounded-2xl bg-white p-5 shadow-xl sm:-left-8">
               <div className="flex items-center gap-3">
                 <div className="rounded-full bg-emerald-100 p-3 text-emerald-600">
                   <HandHeart size={25} />
                 </div>
+
                 <div>
                   <p className="font-bold text-slate-900">Make an Impact</p>
-                  <p className="text-sm text-slate-500">One action at a time.</p>
+                  <p className="text-sm text-slate-500">
+                    One action at a time.
+                  </p>
                 </div>
               </div>
             </div>
@@ -287,15 +344,19 @@ export default function Home() {
       </section>
 
       {/* FEATURES SECTION */}
-      <section id="features" className="mx-auto max-w-7xl px-5 py-24 lg:px-8">
-
+      <section
+        id="features"
+        className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-24"
+      >
         <div className="mx-auto mb-14 max-w-2xl text-center">
           <p className="mb-3 font-bold uppercase tracking-widest text-emerald-600">
             What We Do
           </p>
+
           <h2 className="text-3xl font-extrabold tracking-tight md:text-4xl">
             Bringing People Together for Good
           </h2>
+
           <p className="mt-4 leading-7 text-slate-500">
             A platform that makes it easier to organize, discover,
             and participate in meaningful community activities.
@@ -307,7 +368,10 @@ export default function Home() {
             const Icon = feature.icon;
 
             return (
-              <div key={feature.title} className="group rounded-3xl border border-gray-100 bg-white p-8 transition duration-300 hover:-translate-y-2 hover:border-emerald-200 hover:shadow-xl">
+              <div
+                key={feature.title}
+                className="group rounded-3xl border border-gray-100 bg-white p-8 transition duration-300 hover:-translate-y-2 hover:border-emerald-200 hover:shadow-xl"
+              >
                 <div className="mb-6 inline-flex rounded-2xl bg-emerald-50 p-4 text-emerald-600 transition group-hover:bg-emerald-600 group-hover:text-white">
                   <Icon size={29} />
                 </div>
@@ -320,7 +384,10 @@ export default function Home() {
                   {feature.description}
                 </p>
 
-                <a href="/events" className="mt-6 inline-flex items-center gap-2 font-semibold text-emerald-600">
+                <a
+                  href="/events"
+                  className="mt-6 inline-flex items-center gap-2 font-semibold text-emerald-600"
+                >
                   Learn More <ArrowUpRight size={17} />
                 </a>
               </div>
@@ -330,7 +397,7 @@ export default function Home() {
       </section>
 
       {/* UPCOMING EVENTS */}
-      <section id="events" className="bg-slate-50 py-24">
+      <section id="events" className="bg-slate-50 py-20 lg:py-24">
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
 
           <div className="mb-12 flex flex-wrap items-end justify-between gap-5">
@@ -338,23 +405,30 @@ export default function Home() {
               <p className="mb-3 font-bold uppercase tracking-widest text-emerald-600">
                 Get Involved
               </p>
+
               <h2 className="text-3xl font-extrabold md:text-4xl">
                 Upcoming Community Events
               </h2>
+
               <p className="mt-3 text-slate-500">
                 Find an event near you and be part of the change.
               </p>
             </div>
 
-            <a href="/events" className="inline-flex items-center gap-2 font-bold text-emerald-600 hover:gap-3">
+            <a
+              href="/events"
+              className="inline-flex items-center gap-2 font-bold text-emerald-600 transition hover:gap-3"
+            >
               View All Events <ArrowRight size={18} />
             </a>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {events.map((event) => (
-              <article key={event.title} className="overflow-hidden rounded-3xl bg-white shadow-sm transition duration-300 hover:-translate-y-2 hover:shadow-xl">
-
+              <article
+                key={event.title}
+                className="overflow-hidden rounded-3xl bg-white shadow-sm transition duration-300 hover:-translate-y-2 hover:shadow-xl"
+              >
                 <div className="relative">
                   <img
                     src={event.image}
@@ -374,24 +448,28 @@ export default function Home() {
 
                   <div className="mt-5 space-y-3 text-sm text-slate-500">
                     <p className="flex items-center gap-2">
-                      <CalendarDays size={17} className="text-emerald-600" />
+                      <CalendarDays size={17} className="shrink-0 text-emerald-600" />
                       {event.date}
                     </p>
+
                     <p className="flex items-center gap-2">
-                      <MapPin size={17} className="text-emerald-600" />
+                      <MapPin size={17} className="shrink-0 text-emerald-600" />
                       {event.location}
                     </p>
+
                     <p className="flex items-center gap-2">
-                      <Users size={17} className="text-emerald-600" />
+                      <Users size={17} className="shrink-0 text-emerald-600" />
                       {event.people}
                     </p>
                   </div>
 
-                  <a href="/events" className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-50 py-3 font-semibold text-emerald-700 transition hover:bg-emerald-600 hover:text-white">
+                  <a
+                    href="/events"
+                    className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-50 py-3 font-semibold text-emerald-700 transition hover:bg-emerald-600 hover:text-white"
+                  >
                     View Event <ArrowRight size={17} />
                   </a>
                 </div>
-
               </article>
             ))}
           </div>
@@ -399,15 +477,19 @@ export default function Home() {
       </section>
 
       {/* COMMUNITY GALLERY */}
-      <section id="gallery" className="mx-auto max-w-7xl px-5 py-24 lg:px-8">
-
+      <section
+        id="gallery"
+        className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-24"
+      >
         <div className="mb-12 text-center">
           <p className="mb-3 font-bold uppercase tracking-widest text-emerald-600">
             Our Community
           </p>
+
           <h2 className="text-3xl font-extrabold md:text-4xl">
             Moments That Matter
           </h2>
+
           <p className="mx-auto mt-4 max-w-xl leading-7 text-slate-500">
             Every smile, every helping hand, and every small contribution
             creates a story worth sharing.
@@ -416,7 +498,10 @@ export default function Home() {
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {gallery.map((image, index) => (
-            <div key={image} className="group overflow-hidden rounded-2xl">
+            <div
+              key={image}
+              className="group overflow-hidden rounded-2xl"
+            >
               <img
                 src={image}
                 alt={`Community volunteering moment ${index + 1}`}
@@ -427,8 +512,56 @@ export default function Home() {
         </div>
       </section>
 
+      {/* NEWSLETTER SECTION */}
+      <section className="bg-emerald-50 px-5 py-20">
+        <div className="mx-auto max-w-4xl rounded-3xl border border-emerald-100 bg-white px-6 py-12 text-center shadow-sm sm:px-12">
+
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+            <Mail size={27} />
+          </div>
+
+          <p className="mb-3 text-sm font-bold uppercase tracking-widest text-emerald-600">
+            Stay Connected
+          </p>
+
+          <h2 className="text-3xl font-extrabold text-slate-900 md:text-4xl">
+            Get Community Updates
+          </h2>
+
+          <p className="mx-auto mt-4 max-w-xl leading-7 text-slate-500">
+            Stay informed about upcoming events, volunteer opportunities,
+            and inspiring community initiatives.
+          </p>
+
+          <form
+            onSubmit={handleNewsletterSubmit}
+            className="mx-auto mt-8 flex max-w-xl flex-col gap-3 sm:flex-row"
+          >
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email address"
+              className="min-w-0 flex-1 rounded-full border border-gray-200 px-5 py-4 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+            />
+
+            <button
+              type="submit"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-600 px-7 py-4 font-semibold text-white transition hover:bg-emerald-700"
+            >
+              Subscribe <ArrowRight size={17} />
+            </button>
+          </form>
+
+          <p className="mt-4 text-xs text-slate-400">
+            Newsletter design preview. Subscription service is not connected.
+          </p>
+        </div>
+      </section>
+
       {/* CALL TO ACTION */}
-      <section className="px-5 pb-24">
+      <section className="px-5 py-20 lg:py-24">
         <div className="mx-auto max-w-7xl overflow-hidden rounded-[2rem] bg-emerald-700 px-6 py-16 text-center text-white md:px-16">
 
           <div className="mx-auto mb-5 inline-flex rounded-full bg-white/15 p-4">
@@ -444,10 +577,12 @@ export default function Home() {
             difference. Join our community and start creating change.
           </p>
 
-          <a href="/register" className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 font-bold text-emerald-700 transition hover:bg-emerald-50">
+          <a
+            href="/register"
+            className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 font-bold text-emerald-700 transition hover:bg-emerald-50"
+          >
             Join TogetherWe <ArrowRight size={19} />
           </a>
-
         </div>
       </section>
 
@@ -456,7 +591,10 @@ export default function Home() {
         <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
 
           <div>
-            <a href="/" className="flex items-center gap-2 text-2xl font-extrabold">
+            <a
+              href="/"
+              className="flex items-center gap-2 text-2xl font-extrabold"
+            >
               <Heart className="text-emerald-400" fill="currentColor" />
               Together<span className="text-emerald-400">We.</span>
             </a>
@@ -469,55 +607,70 @@ export default function Home() {
 
           <div>
             <h3 className="mb-5 font-bold">Quick Links</h3>
+
             <div className="space-y-3 text-sm text-slate-400">
-              <p><a href="/" className="hover:text-emerald-400">Home</a></p>
-              <p><a href="/events" className="hover:text-emerald-400">Upcoming Events</a></p>
-              <p><a href="#features" className="hover:text-emerald-400">Features</a></p>
-              <p><a href="#gallery" className="hover:text-emerald-400">Gallery</a></p>
+              <p>
+                <a href="/" className="hover:text-emerald-400">Home</a>
+              </p>
+              <p>
+                <a href="/events" className="hover:text-emerald-400">Upcoming Events</a>
+              </p>
+              <p>
+                <a href="#features" className="hover:text-emerald-400">Features</a>
+              </p>
+              <p>
+                <a href="#gallery" className="hover:text-emerald-400">Gallery</a>
+              </p>
             </div>
           </div>
 
           <div>
             <h3 className="mb-5 font-bold">Get Involved</h3>
+
             <div className="space-y-3 text-sm text-slate-400">
-              <p><a href="/register" className="hover:text-emerald-400">Join Community</a></p>
-              <p><a href="/login" className="hover:text-emerald-400">Login</a></p>
-              <p><a href="/events" className="hover:text-emerald-400">Explore Events</a></p>
+              <p>
+                <a href="/register" className="hover:text-emerald-400">Join Community</a>
+              </p>
+              <p>
+                <a href="/login" className="hover:text-emerald-400">Login</a>
+              </p>
+              <p>
+                <a href="/events" className="hover:text-emerald-400">Explore Events</a>
+              </p>
             </div>
           </div>
 
           <div>
             <h3 className="mb-5 font-bold">Follow Our Journey</h3>
+
             <p className="mb-5 text-sm leading-7 text-slate-400">
               Stay connected and be part of our community.
             </p>
 
             <div className="flex gap-3">
-  <a
-    href="#"
-    aria-label="Facebook"
-    className="rounded-full bg-slate-800 p-3 text-white hover:bg-emerald-600"
-  >
-    <span className="text-lg font-bold">f</span>
-  </a>
+              <a
+                href="#"
+                aria-label="Facebook"
+                className="rounded-full bg-slate-800 p-3 text-white transition hover:bg-emerald-600"
+              >
+                <span className="text-lg font-bold">f</span>
+              </a>
 
-  <a
-    href="#"
-    aria-label="Instagram"
-    className="rounded-full bg-slate-800 p-3 text-white hover:bg-emerald-600"
-  >
-    <span className="text-lg font-bold">◎</span>
-  </a>
-</div>
+              <a
+                href="#"
+                aria-label="Instagram"
+                className="rounded-full bg-slate-800 p-3 text-white transition hover:bg-emerald-600"
+              >
+                <span className="text-lg font-bold">◎</span>
+              </a>
+            </div>
           </div>
-
         </div>
 
         <div className="border-t border-slate-800 px-5 py-6 text-center text-sm text-slate-500">
           © 2026 TogetherWe. Built for a better community.
         </div>
       </footer>
-
     </main>
   );
 }
