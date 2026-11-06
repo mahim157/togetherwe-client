@@ -2,7 +2,8 @@
 "use client";
 
 import { useState } from "react";
-
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   ArrowRight,
   Heart,
@@ -15,9 +16,9 @@ import {
   X,
   Globe,
   Mail,
-  Leaf,
-  Sparkles,
 } from "lucide-react";
+
+import { authClient } from "@/lib/auth-client";
 
 const events = [
   {
@@ -25,8 +26,7 @@ const events = [
     category: "Donation",
     location: "Mirpur 10, Dhaka",
     date: "November 20, 2026",
-    image:
-      "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=900",
+    image: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=900",
     people: "25 Volunteers",
   },
   {
@@ -34,8 +34,7 @@ const events = [
     category: "Plantation",
     location: "Savar, Dhaka",
     date: "November 25, 2026",
-    image:
-      "https://images.unsplash.com/photo-1448375240586-882707db888b?w=900",
+    image: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=900",
     people: "18 Volunteers",
   },
   {
@@ -43,8 +42,7 @@ const events = [
     category: "Cleanup",
     location: "Dhanmondi, Dhaka",
     date: "November 28, 2026",
-    image:
-      "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=900",
+    image: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=900",
     people: "30 Volunteers",
   },
   {
@@ -52,8 +50,7 @@ const events = [
     category: "Donation",
     location: "Uttara, Dhaka",
     date: "December 02, 2026",
-    image:
-      "https://images.unsplash.com/photo-1593113598332-cd288d649433?w=900",
+    image: "https://images.unsplash.com/photo-1593113598332-cd288d649433?w=900",
     people: "20 Volunteers",
   },
   {
@@ -61,8 +58,7 @@ const events = [
     category: "Awareness",
     location: "Mohammadpur, Dhaka",
     date: "December 05, 2026",
-    image:
-      "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=900",
+    image: "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=900",
     people: "15 Volunteers",
   },
   {
@@ -70,8 +66,7 @@ const events = [
     category: "Social Work",
     location: "Farmgate, Dhaka",
     date: "December 10, 2026",
-    image:
-      "https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=900",
+    image: "https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=900",
     people: "28 Volunteers",
   },
 ];
@@ -105,15 +100,40 @@ const gallery = [
 ];
 
 export default function Home() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [email, setEmail] = useState("");
+  const router = useRouter();
 
-  const handleNewsletterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [newsletterMessage, setNewsletterMessage] = useState("");
+
+  const { data: session, isPending } = authClient.useSession();
+  const user = session?.user;
+
+  const handleLogout = async () => {
+    try {
+      await authClient.signOut();
+
+      setIsProfileOpen(false);
+      setIsMenuOpen(false);
+
+      router.refresh();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
+  const handleNewsletterSubmit = (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
 
     if (!email.trim()) return;
 
-    alert("Thank you for your interest in TogetherWe!");
+    setNewsletterMessage(
+      "Thank you for your interest in TogetherWe!"
+    );
+
     setEmail("");
   };
 
@@ -124,7 +144,8 @@ export default function Home() {
       <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
 
-          <a
+          {/* LOGO */}
+          <Link
             href="/"
             className="flex items-center gap-2"
             onClick={() => setIsMenuOpen(false)}
@@ -136,42 +157,157 @@ export default function Home() {
             <span className="text-2xl font-extrabold tracking-tight">
               Together<span className="text-emerald-600">We.</span>
             </span>
-          </a>
+          </Link>
 
+          {/* DESKTOP NAVIGATION */}
           <div className="hidden items-center gap-8 text-sm font-medium text-slate-600 md:flex">
-            <a href="/" className="text-emerald-600">
+            <Link href="/" className="text-emerald-600">
               Home
-            </a>
+            </Link>
 
             <a href="#features" className="transition hover:text-emerald-600">
               Features
             </a>
 
-            <a href="/events" className="transition hover:text-emerald-600">
+            <Link href="/events" className="transition hover:text-emerald-600">
               Upcoming Events
-            </a>
+            </Link>
 
             <a href="#gallery" className="transition hover:text-emerald-600">
               Gallery
             </a>
           </div>
 
+          {/* DESKTOP AUTHENTICATION */}
           <div className="hidden items-center gap-3 md:flex">
-            <a
-              href="/login"
-              className="px-4 py-2 text-sm font-semibold transition hover:text-emerald-600"
-            >
-              Login
-            </a>
 
-            <a
-              href="/register"
-              className="rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700"
-            >
-              Get Started
-            </a>
+            {isPending ? (
+              <div className="h-10 w-28 animate-pulse rounded-full bg-gray-100" />
+            ) : user ? (
+
+              <div className="relative">
+
+                <button
+                  type="button"
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="flex items-center gap-3 rounded-full border border-gray-200 px-3 py-2 transition hover:bg-emerald-50"
+                >
+                  {user.image ? (
+                    <img
+                      src={user.image}
+                      alt={user.name || "User"}
+                      className="h-9 w-9 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 font-bold text-emerald-700">
+                      {user.name?.charAt(0).toUpperCase() || "U"}
+                    </div>
+                  )}
+
+                  <span className="max-w-32 truncate text-sm font-semibold text-slate-700">
+                    {user.name || user.email}
+                  </span>
+
+                  <span className="text-xs text-slate-500">
+                    {isProfileOpen ? "▲" : "▼"}
+                  </span>
+                </button>
+
+                {/* PROFILE DROPDOWN */}
+                {isProfileOpen && (
+                  <>
+                    <button
+                      type="button"
+                      aria-label="Close profile menu"
+                      className="fixed inset-0 z-40 cursor-default"
+                      onClick={() => setIsProfileOpen(false)}
+                    />
+
+                    <div className="absolute right-0 top-14 z-50 w-64 rounded-2xl border border-gray-100 bg-white p-3 shadow-xl">
+
+                      <div className="border-b border-gray-100 px-3 py-3">
+                        <p className="font-bold text-slate-800">
+                          {user.name || "Community Member"}
+                        </p>
+
+                        <p className="mt-1 truncate text-xs text-slate-500">
+                          {user.email}
+                        </p>
+                      </div>
+
+                      <div className="mt-2 space-y-1 text-sm">
+
+                        {/* MY PROFILE */}
+                        <Link
+                          href="/profile"
+                          onClick={() => setIsProfileOpen(false)}
+                          className="block rounded-lg bg-emerald-50 px-3 py-2.5 font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                        >
+                          My Profile
+                        </Link>
+
+                        <Link
+                          href="/events/create"
+                          onClick={() => setIsProfileOpen(false)}
+                          className="block rounded-lg px-3 py-2 text-slate-600 transition hover:bg-emerald-50 hover:text-emerald-700"
+                        >
+                          Create Event
+                        </Link>
+
+                        <Link
+                          href="/manage-events"
+                          onClick={() => setIsProfileOpen(false)}
+                          className="block rounded-lg px-3 py-2 text-slate-600 transition hover:bg-emerald-50 hover:text-emerald-700"
+                        >
+                          Manage Events
+                        </Link>
+
+                        <Link
+                          href="/joined-events"
+                          onClick={() => setIsProfileOpen(false)}
+                          className="block rounded-lg px-3 py-2 text-slate-600 transition hover:bg-emerald-50 hover:text-emerald-700"
+                        >
+                          Joined Events
+                        </Link>
+
+                        <div className="my-2 border-t border-gray-100" />
+
+                        <button
+                          type="button"
+                          onClick={handleLogout}
+                          className="w-full rounded-lg px-3 py-2 text-left font-semibold text-red-600 transition hover:bg-red-50"
+                        >
+                          Logout
+                        </button>
+
+                      </div>
+                    </div>
+                  </>
+                )}
+
+              </div>
+
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="px-4 py-2 text-sm font-semibold transition hover:text-emerald-600"
+                >
+                  Login
+                </Link>
+
+                <Link
+                  href="/register"
+                  className="rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
+
           </div>
 
+          {/* MOBILE MENU BUTTON */}
           <button
             type="button"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -182,8 +318,10 @@ export default function Home() {
           >
             {isMenuOpen ? <X size={23} /> : <Menu size={23} />}
           </button>
+
         </div>
 
+        {/* MOBILE NAVIGATION */}
         {isMenuOpen && (
           <div
             id="mobile-navigation"
@@ -191,13 +329,13 @@ export default function Home() {
           >
             <div className="flex flex-col gap-1 text-sm font-medium text-slate-700">
 
-              <a
+              <Link
                 href="/"
                 onClick={() => setIsMenuOpen(false)}
                 className="rounded-lg bg-emerald-50 px-4 py-3 text-emerald-700"
               >
                 Home
-              </a>
+              </Link>
 
               <a
                 href="#features"
@@ -207,13 +345,13 @@ export default function Home() {
                 Features
               </a>
 
-              <a
+              <Link
                 href="/events"
                 onClick={() => setIsMenuOpen(false)}
                 className="rounded-lg px-4 py-3 transition hover:bg-emerald-50 hover:text-emerald-700"
               >
                 Upcoming Events
-              </a>
+              </Link>
 
               <a
                 href="#gallery"
@@ -225,21 +363,100 @@ export default function Home() {
 
               <div className="my-3 border-t border-gray-100" />
 
-              <a
-                href="/login"
-                onClick={() => setIsMenuOpen(false)}
-                className="rounded-lg px-4 py-3 transition hover:bg-emerald-50 hover:text-emerald-700"
-              >
-                Login
-              </a>
+              {/* MOBILE USER ACCOUNT */}
+              {isPending ? (
+                <p className="px-4 py-3 text-sm text-gray-400">
+                  Loading account...
+                </p>
+              ) : user ? (
+                <>
+                  <div className="flex items-center gap-3 rounded-xl bg-emerald-50 p-3">
 
-              <a
-                href="/register"
-                onClick={() => setIsMenuOpen(false)}
-                className="mt-2 rounded-full bg-emerald-600 px-5 py-3 text-center font-semibold text-white transition hover:bg-emerald-700"
-              >
-                Get Started
-              </a>
+                    {user.image ? (
+                      <img
+                        src={user.image}
+                        alt={user.name || "User"}
+                        className="h-11 w-11 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 font-bold text-emerald-700">
+                        {user.name?.charAt(0).toUpperCase() || "U"}
+                      </div>
+                    )}
+
+                    <div className="min-w-0">
+                      <p className="truncate font-bold text-slate-800">
+                        {user.name || "Community Member"}
+                      </p>
+
+                      <p className="truncate text-xs text-slate-500">
+                        {user.email}
+                      </p>
+                    </div>
+
+                  </div>
+
+                  {/* MOBILE MY PROFILE */}
+                  <Link
+                    href="/profile"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="rounded-lg bg-emerald-50 px-4 py-3 font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                  >
+                    My Profile
+                  </Link>
+
+                  <Link
+                    href="/events/create"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="rounded-lg px-4 py-3 transition hover:bg-emerald-50"
+                  >
+                    Create Event
+                  </Link>
+
+                  <Link
+                    href="/manage-events"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="rounded-lg px-4 py-3 transition hover:bg-emerald-50"
+                  >
+                    Manage Events
+                  </Link>
+
+                  <Link
+                    href="/joined-events"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="rounded-lg px-4 py-3 transition hover:bg-emerald-50"
+                  >
+                    Joined Events
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="rounded-lg px-4 py-3 text-left font-semibold text-red-600 transition hover:bg-red-50"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="rounded-lg px-4 py-3 transition hover:bg-emerald-50 hover:text-emerald-700"
+                  >
+                    Login
+                  </Link>
+
+                  <Link
+                    href="/register"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="mt-2 rounded-full bg-emerald-600 px-5 py-3 text-center font-semibold text-white transition hover:bg-emerald-700"
+                  >
+                    Get Started
+                  </Link>
+                </>
+              )}
+
             </div>
           </div>
         )}
@@ -269,20 +486,20 @@ export default function Home() {
             </p>
 
             <div className="mt-9 flex flex-wrap gap-4">
-              <a
+              <Link
                 href="/events"
                 className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-7 py-4 font-semibold text-white shadow-lg shadow-emerald-200 transition hover:-translate-y-1 hover:bg-emerald-700"
               >
                 Explore Events
                 <ArrowRight size={19} />
-              </a>
+              </Link>
 
-              <a
-                href="/register"
+              <Link
+                href={user ? "/events/create" : "/register"}
                 className="rounded-full border border-emerald-200 bg-white px-7 py-4 font-semibold text-emerald-700 transition hover:bg-emerald-50"
               >
-                Join Our Community
-              </a>
+                {user ? "Create an Event" : "Join Our Community"}
+              </Link>
             </div>
 
             <div className="mt-12 grid grid-cols-3 gap-4">
@@ -384,12 +601,12 @@ export default function Home() {
                   {feature.description}
                 </p>
 
-                <a
+                <Link
                   href="/events"
                   className="mt-6 inline-flex items-center gap-2 font-semibold text-emerald-600"
                 >
                   Learn More <ArrowUpRight size={17} />
-                </a>
+                </Link>
               </div>
             );
           })}
@@ -415,12 +632,12 @@ export default function Home() {
               </p>
             </div>
 
-            <a
+            <Link
               href="/events"
               className="inline-flex items-center gap-2 font-bold text-emerald-600 transition hover:gap-3"
             >
               View All Events <ArrowRight size={18} />
-            </a>
+            </Link>
           </div>
 
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -463,12 +680,12 @@ export default function Home() {
                     </p>
                   </div>
 
-                  <a
+                  <Link
                     href="/events"
                     className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-50 py-3 font-semibold text-emerald-700 transition hover:bg-emerald-600 hover:text-white"
                   >
                     View Event <ArrowRight size={17} />
-                  </a>
+                  </Link>
                 </div>
               </article>
             ))}
@@ -498,10 +715,7 @@ export default function Home() {
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {gallery.map((image, index) => (
-            <div
-              key={image}
-              className="group overflow-hidden rounded-2xl"
-            >
+            <div key={image} className="group overflow-hidden rounded-2xl">
               <img
                 src={image}
                 alt={`Community volunteering moment ${index + 1}`}
@@ -554,6 +768,12 @@ export default function Home() {
             </button>
           </form>
 
+          {newsletterMessage && (
+            <p className="mt-4 text-sm font-medium text-emerald-700">
+              {newsletterMessage}
+            </p>
+          )}
+
           <p className="mt-4 text-xs text-slate-400">
             Newsletter design preview. Subscription service is not connected.
           </p>
@@ -577,12 +797,13 @@ export default function Home() {
             difference. Join our community and start creating change.
           </p>
 
-          <a
-            href="/register"
+          <Link
+            href={user ? "/events/create" : "/register"}
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 font-bold text-emerald-700 transition hover:bg-emerald-50"
           >
-            Join TogetherWe <ArrowRight size={19} />
-          </a>
+            {user ? "Create an Event" : "Join TogetherWe"}
+            <ArrowRight size={19} />
+          </Link>
         </div>
       </section>
 
@@ -591,13 +812,13 @@ export default function Home() {
         <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
 
           <div>
-            <a
+            <Link
               href="/"
               className="flex items-center gap-2 text-2xl font-extrabold"
             >
               <Heart className="text-emerald-400" fill="currentColor" />
               Together<span className="text-emerald-400">We.</span>
-            </a>
+            </Link>
 
             <p className="mt-5 max-w-xs leading-7 text-slate-400">
               Bringing communities together through meaningful actions
@@ -610,10 +831,10 @@ export default function Home() {
 
             <div className="space-y-3 text-sm text-slate-400">
               <p>
-                <a href="/" className="hover:text-emerald-400">Home</a>
+                <Link href="/" className="hover:text-emerald-400">Home</Link>
               </p>
               <p>
-                <a href="/events" className="hover:text-emerald-400">Upcoming Events</a>
+                <Link href="/events" className="hover:text-emerald-400">Upcoming Events</Link>
               </p>
               <p>
                 <a href="#features" className="hover:text-emerald-400">Features</a>
@@ -629,13 +850,13 @@ export default function Home() {
 
             <div className="space-y-3 text-sm text-slate-400">
               <p>
-                <a href="/register" className="hover:text-emerald-400">Join Community</a>
+                <Link href="/register" className="hover:text-emerald-400">Join Community</Link>
               </p>
               <p>
-                <a href="/login" className="hover:text-emerald-400">Login</a>
+                <Link href="/login" className="hover:text-emerald-400">Login</Link>
               </p>
               <p>
-                <a href="/events" className="hover:text-emerald-400">Explore Events</a>
+                <Link href="/events" className="hover:text-emerald-400">Explore Events</Link>
               </p>
             </div>
           </div>

@@ -1,7 +1,8 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Heart,
@@ -12,15 +13,19 @@ import {
   ArrowRight,
   Leaf,
 } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 export default function LoginPage() {
+  const router = useRouter();
+
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<"success" | "error">("error");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setMessage("");
 
@@ -30,14 +35,37 @@ export default function LoginPage() {
       return;
     }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       setMessageType("error");
       setMessage("Please enter a valid email address.");
       return;
     }
 
-    setMessageType("error");
-    setMessage("Authentication is not connected yet. Please try again later.");
+    try {
+      setLoading(true);
+
+      const { error } = await authClient.signIn.email({
+        email: email.trim(),
+        password,
+      });
+
+      if (error) {
+        setMessageType("error");
+        setMessage(error.message || "Invalid email or password.");
+        return;
+      }
+
+      setMessageType("success");
+      setMessage("Login successful! Redirecting...");
+
+      router.replace("/");
+      router.refresh();
+    } catch {
+      setMessageType("error");
+      setMessage("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -142,6 +170,7 @@ export default function LoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email"
+                    autoComplete="email"
                     className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 pl-12 pr-4 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
                   />
                 </div>
@@ -168,6 +197,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
+                    autoComplete="current-password"
                     className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 pl-12 pr-12 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
                   />
 
@@ -199,10 +229,11 @@ export default function LoginPage() {
               {/* Login Button */}
               <button
                 type="submit"
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 py-3.5 font-semibold text-white shadow-lg shadow-green-600/20 transition hover:bg-green-700"
+                disabled={loading}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 py-3.5 font-semibold text-white shadow-lg shadow-green-600/20 transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Login
-                <ArrowRight size={18} />
+                {loading ? "Logging in..." : "Login"}
+                {!loading && <ArrowRight size={18} />}
               </button>
             </form>
 
@@ -220,7 +251,7 @@ export default function LoginPage() {
               type="button"
               onClick={() => {
                 setMessageType("error");
-                setMessage("Google authentication is not connected yet.");
+                setMessage("Google authentication will be connected later.");
               }}
               className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3 font-semibold text-gray-700 transition hover:border-green-400 hover:bg-green-50"
             >
@@ -249,24 +280,24 @@ export default function LoginPage() {
             </button>
 
             {/* GitHub Button */}
-<button
-  type="button"
-  onClick={() => {
-    setMessageType("error");
-    setMessage("GitHub authentication is not connected yet.");
-  }}
-  className="mt-3 flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3 font-semibold text-gray-700 transition hover:border-green-400 hover:bg-green-50"
->
-  <svg
-    viewBox="0 0 24 24"
-    className="h-5 w-5 fill-current"
-    aria-hidden="true"
-  >
-    <path d="M12 .9a11.1 11.1 0 0 0-3.51 21.63c.56.1.76-.24.76-.54v-2.1c-3.1.67-3.76-1.32-3.76-1.32-.51-1.3-1.24-1.65-1.24-1.65-1.01-.69.08-.68.08-.68 1.12.08 1.7 1.15 1.7 1.15.99 1.7 2.6 1.21 3.23.93.1-.72.39-1.21.7-1.49-2.47-.28-5.06-1.24-5.06-5.51 0-1.22.44-2.22 1.15-3-.12-.28-.5-1.42.11-2.96 0 0 .94-.3 3.05 1.15a10.6 10.6 0 0 1 5.56 0c2.11-1.45 3.05-1.15 3.05-1.15.61 1.54.23 2.68.11 2.96.72.78 1.15 1.78 1.15 3 0 4.28-2.6 5.23-5.08 5.5.4.35.75 1.02.75 2.06v3.06c0 .3.2.65.77.54A11.1 11.1 0 0 0 12 .9Z" />
-  </svg>
+            <button
+              type="button"
+              onClick={() => {
+                setMessageType("error");
+                setMessage("GitHub authentication will be connected later.");
+              }}
+              className="mt-3 flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3 font-semibold text-gray-700 transition hover:border-green-400 hover:bg-green-50"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                className="h-5 w-5 fill-current"
+                aria-hidden="true"
+              >
+                <path d="M12 .9a11.1 11.1 0 0 0-3.51 21.63c.56.1.76-.24.76-.54v-2.1c-3.1.67-3.76-1.32-3.76-1.32-.51-1.3-1.24-1.65-1.24-1.65-1.01-.69.08-.68.08-.68 1.12.08 1.7 1.15 1.7 1.15.99 1.7 2.6 1.21 3.23.93.1-.72.39-1.21.7-1.49-2.47-.28-5.06-1.24-5.06-5.51 0-1.22.44-2.22 1.15-3-.12-.28-.5-1.42.11-2.96 0 0 .94-.3 3.05 1.15a10.6 10.6 0 0 1 5.56 0c2.11-1.45 3.05-1.15 3.05-1.15.61 1.54.23 2.68.11 2.96.72.78 1.15 1.78 1.15 3 0 4.28-2.6 5.23-5.08 5.5.4.35.75 1.02.75 2.06v3.06c0 .3.2.65.77.54A11.1 11.1 0 0 0 12 .9Z" />
+              </svg>
+              Continue with GitHub
+            </button>
 
-  Continue with GitHub
-</button>
             {/* Register Link */}
             <p className="mt-8 text-center text-sm text-gray-500">
               Don&apos;t have an account?{" "}

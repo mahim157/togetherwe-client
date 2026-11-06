@@ -3,6 +3,7 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Heart,
   User,
@@ -14,8 +15,11 @@ import {
   ArrowRight,
   Leaf,
 } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 export default function RegisterPage() {
+  const router = useRouter();
+
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [photoURL, setPhotoURL] = useState("");
@@ -23,8 +27,9 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<"error" | "success">("error");
+  const [loading, setLoading] = useState(false);
 
-  const handleRegister = (e: FormEvent<HTMLFormElement>) => {
+  const handleRegister = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setMessage("");
 
@@ -58,10 +63,37 @@ export default function RegisterPage() {
       return;
     }
 
-    setMessage(
-      "Registration form validated. Authentication will be connected in the next step."
-    );
-    setMessageType("success");
+    try {
+      setLoading(true);
+
+      const { data, error } = await authClient.signUp.email({
+        name: fullName.trim(),
+        email: email.trim(),
+        password,
+        image: photoURL.trim(),
+      });
+
+      if (error) {
+        setMessage(error.message || "Registration failed. Please try again.");
+        setMessageType("error");
+        return;
+      }
+
+      if (data) {
+        setMessage("Account created successfully! Redirecting...");
+        setMessageType("success");
+
+        router.replace("/");
+        router.refresh();
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+
+      setMessage("Something went wrong. Please try again.");
+      setMessageType("error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -266,10 +298,11 @@ export default function RegisterPage() {
               {/* Submit */}
               <button
                 type="submit"
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 py-3.5 font-semibold text-white shadow-lg shadow-emerald-700/20 transition hover:bg-emerald-800"
+                disabled={loading}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 py-3.5 font-semibold text-white shadow-lg shadow-emerald-700/20 transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Create Account
-                <ArrowRight size={19} />
+                {loading ? "Creating Account..." : "Create Account"}
+                {!loading && <ArrowRight size={19} />}
               </button>
             </form>
 
@@ -285,7 +318,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => {
-                  setMessage("Google authentication is not connected yet.");
+                  setMessage("Google authentication will be connected later.");
                   setMessageType("error");
                 }}
                 className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 py-3 font-medium text-gray-700 transition hover:bg-gray-50"
@@ -302,7 +335,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => {
-                  setMessage("GitHub authentication is not connected yet.");
+                  setMessage("GitHub authentication will be connected later.");
                   setMessageType("error");
                 }}
                 className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 py-3 font-medium text-gray-700 transition hover:bg-gray-50"
