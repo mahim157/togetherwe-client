@@ -1,8 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { Suspense, use, useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -28,17 +27,18 @@ type Event = {
   creatorEmail?: string;
 };
 
-export default function EventDetailsPage() {
-  const params = useParams<{ id: string }>();
-  const id = params.id;
+function EventDetailsContent({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
 
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!id) return;
-
     async function fetchEvent() {
       try {
         setLoading(true);
@@ -46,9 +46,7 @@ export default function EventDetailsPage() {
 
         const response = await fetch(
           `http://localhost:5000/api/events/${id}`,
-          {
-            cache: "no-store",
-          }
+          { cache: "no-store" }
         );
 
         const result = await response.json();
@@ -71,13 +69,17 @@ export default function EventDetailsPage() {
       }
     }
 
-    fetchEvent();
+    if (id) {
+      fetchEvent();
+    }
   }, [id]);
 
   async function handleShare() {
+    if (!event) return;
+
     const shareData = {
-      title: event?.title || "TogetherWe Event",
-      text: event?.description || "Join this social development event.",
+      title: event.title,
+      text: event.description,
       url: window.location.href,
     };
 
@@ -88,29 +90,31 @@ export default function EventDetailsPage() {
         await navigator.clipboard.writeText(shareData.url);
         alert("Event link copied successfully!");
       }
-    } catch (error) {
-      console.log("Share cancelled or failed:", error);
+    } catch (err) {
+      console.log("Share cancelled or failed:", err);
     }
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50">
         <Loader2 className="h-10 w-10 animate-spin text-green-600" />
-        <p className="mt-4 text-gray-600">Loading event details...</p>
+        <p className="mt-4 text-gray-600">
+          Loading event details...
+        </p>
       </div>
     );
   }
 
   if (error || !event) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4 text-center">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 text-center">
         <h1 className="text-3xl font-bold text-gray-900">
           Event Not Found
         </h1>
 
         <p className="mt-3 text-gray-600">
-          {error || "The event you are looking for does not exist."}
+          {error || "The event does not exist."}
         </p>
 
         <Link
@@ -137,7 +141,7 @@ export default function EventDetailsPage() {
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <Link
           href="/events"
-          className="mb-6 inline-flex items-center gap-2 font-medium text-gray-600 transition hover:text-green-600"
+          className="mb-6 inline-flex items-center gap-2 font-medium text-gray-600 hover:text-green-600"
         >
           <ArrowLeft size={18} />
           Back to Upcoming Events
@@ -261,7 +265,7 @@ export default function EventDetailsPage() {
 
               <Link
                 href="/login"
-                className="mt-8 flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-5 py-3 font-semibold text-white transition hover:bg-green-700"
+                className="mt-8 flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-5 py-3 font-semibold text-white hover:bg-green-700"
               >
                 <Heart size={18} />
                 Join This Event
@@ -269,7 +273,7 @@ export default function EventDetailsPage() {
 
               <button
                 onClick={handleShare}
-                className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-700 transition hover:bg-gray-50"
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-700 hover:bg-gray-50"
               >
                 <Share2 size={18} />
                 Share Event
@@ -279,5 +283,23 @@ export default function EventDetailsPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function EventDetailsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+          <Loader2 className="h-10 w-10 animate-spin text-green-600" />
+        </div>
+      }
+    >
+      <EventDetailsContent params={params} />
+    </Suspense>
   );
 }
