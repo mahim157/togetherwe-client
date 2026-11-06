@@ -17,88 +17,27 @@ import {
 
 import { authClient } from "@/lib/auth-client";
 
-const events = [
-  {
-    id: "1",
-    title: "Winter Clothes Distribution",
-    category: "Donation",
-    location: "Mirpur 10, Dhaka",
-    date: "2026-11-20",
-    volunteers: 45,
-    description:
-      "Help us distribute warm clothes to people who need support during the winter season.",
-    image:
-      "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800",
-  },
-  {
-    id: "2",
-    title: "Community Tree Plantation",
-    category: "Plantation",
-    location: "Savar, Dhaka",
-    date: "2026-11-25",
-    volunteers: 32,
-    description:
-      "Join our initiative to make the community greener by planting trees.",
-    image:
-      "https://images.unsplash.com/photo-1448375240586-882707db888b?w=800",
-  },
-  {
-    id: "3",
-    title: "Neighborhood Cleanup Drive",
-    category: "Cleanup",
-    location: "Dhanmondi, Dhaka",
-    date: "2026-11-28",
-    volunteers: 28,
-    description:
-      "Work together to clean public spaces and create a healthier neighborhood.",
-    image:
-      "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=800",
-  },
-  {
-    id: "4",
-    title: "Food for Everyone",
-    category: "Donation",
-    location: "Uttara, Dhaka",
-    date: "2026-12-02",
-    volunteers: 60,
-    description:
-      "Support our food distribution program for underprivileged families.",
-    image:
-      "https://images.unsplash.com/photo-1593113598332-cd288d649433?w=800",
-  },
-  {
-    id: "5",
-    title: "Community Health Awareness",
-    category: "Awareness",
-    location: "Mohammadpur, Dhaka",
-    date: "2026-12-05",
-    volunteers: 35,
-    description:
-      "Take part in a community awareness program focused on health and wellbeing.",
-    image:
-      "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800",
-  },
-  {
-    id: "6",
-    title: "Help for Street Children",
-    category: "Social Work",
-    location: "Farmgate, Dhaka",
-    date: "2026-12-10",
-    volunteers: 25,
-    description:
-      "Spend time supporting street children through education and essential supplies.",
-    image:
-      "https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=900",
-  },
-];
+type Event = {
+  _id: string;
+  id?: string;
+  title: string;
+  category: string;
+  location: string;
+  date: string;
+  volunteers: number;
+  description: string;
+  image: string;
+};
 
 const categories = [
   "All Categories",
   "Donation",
-  "Plantation",
-  "Cleanup",
-  "Awareness",
   "Social Work",
+  "Cleanup",
+  "Plantation",
+  "Education",
+  "Healthcare",
+  "Other",
 ];
 
 function formatDate(date: string) {
@@ -112,16 +51,18 @@ function formatDate(date: string) {
 export default function EventsPage() {
   const router = useRouter();
 
-  // Get the current login session.
   const { data: session, isPending } = authClient.useSession();
 
+  const [events, setEvents] = useState<Event[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] =
     useState("All Categories");
 
-  const [today, setToday] = useState<string | null>(null);
+  const [today, setToday] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // Set current date after the initial render.
+  // Get today's date.
   useEffect(() => {
     const currentDate = new Date();
 
@@ -134,7 +75,46 @@ export default function EventsPage() {
     setToday(formattedToday);
   }, []);
 
-  // Handle Create Event navigation.
+  // Fetch events from MongoDB through Express API.
+  useEffect(() => {
+    async function fetchEvents() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await fetch(
+          "http://localhost:5000/api/events",
+          {
+            method: "GET",
+            cache: "no-store",
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to load events.");
+        }
+
+        const result = await response.json();
+
+        if (!result.success || !Array.isArray(result.events)) {
+          throw new Error("Invalid event data received.");
+        }
+
+        setEvents(result.events);
+      } catch (err) {
+        console.error("Fetch events error:", err);
+        setError(
+          "Unable to load events. Please make sure the server is running."
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchEvents();
+  }, []);
+
+  // Navigate to Create Event page.
   const handleCreateEvent = () => {
     if (isPending) return;
 
@@ -218,7 +198,7 @@ export default function EventsPage() {
           <div className="mt-14 grid max-w-2xl grid-cols-2 gap-4 sm:grid-cols-3">
             <div className="rounded-2xl border border-white bg-white/80 p-5 shadow-sm backdrop-blur">
               <h3 className="text-3xl font-bold text-green-600">
-                {upcomingEvents.length}
+                {loading ? "..." : upcomingEvents.length}
               </h3>
               <p className="mt-1 text-sm text-gray-500">
                 Upcoming Events
@@ -227,7 +207,7 @@ export default function EventsPage() {
 
             <div className="rounded-2xl border border-white bg-white/80 p-5 shadow-sm backdrop-blur">
               <h3 className="text-3xl font-bold text-green-600">
-                {totalLocations}
+                {loading ? "..." : totalLocations}
               </h3>
               <p className="mt-1 text-sm text-gray-500">
                 Locations
@@ -313,104 +293,124 @@ export default function EventsPage() {
           </div>
         </div>
 
-        {/* Event Cards */}
-        <div className="mt-9 grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredEvents.map((event) => (
-            <article
-              key={event.id}
-              className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
-            >
-              <div className="relative h-56 overflow-hidden">
-                <img
-                  src={event.image}
-                  alt={event.title}
-                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                />
+        {/* Loading State */}
+        {loading && (
+          <div className="mt-12 text-center text-gray-500">
+            Loading upcoming events...
+          </div>
+        )}
 
-                <span className="absolute left-4 top-4 rounded-full bg-white px-4 py-1.5 text-xs font-semibold text-green-700 shadow-sm">
-                  {event.category}
-                </span>
-              </div>
-
-              <div className="p-5">
-                <h3 className="text-xl font-bold text-gray-900 transition group-hover:text-green-700">
-                  {event.title}
-                </h3>
-
-                <p className="mt-3 min-h-[48px] text-sm leading-6 text-gray-500">
-                  {event.description}
-                </p>
-
-                <div className="mt-5 space-y-3 border-t border-gray-100 pt-4">
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <CalendarDays
-                      size={17}
-                      className="shrink-0 text-green-600"
-                    />
-                    <span>{formatDate(event.date)}</span>
-                  </div>
-
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <MapPin
-                      size={17}
-                      className="shrink-0 text-green-600"
-                    />
-                    <span>{event.location}</span>
-                  </div>
-
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <Users
-                      size={17}
-                      className="shrink-0 text-green-600"
-                    />
-                    <span>{event.volunteers} volunteers interested</span>
-                  </div>
-                </div>
-
-                <Link
-                  href={`/events/${event.id}`}
-                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-green-600 py-3 font-semibold text-green-700 transition hover:bg-green-600 hover:text-white"
-                >
-                  View Details
-                  <ArrowRight size={17} />
-                </Link>
-              </div>
-            </article>
-          ))}
-        </div>
-
-        {/* Empty State */}
-        {today && filteredEvents.length === 0 && (
-          <div className="mt-10 rounded-2xl border border-dashed border-gray-300 bg-white px-5 py-16 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
-              <Search size={28} className="text-green-600" />
-            </div>
-
-            <h3 className="mt-5 text-xl font-bold text-gray-900">
-              No Events Found
-            </h3>
-
-            <p className="mt-2 text-sm text-gray-500">
-              Try another search term or select a different category.
-            </p>
+        {/* Error State */}
+        {!loading && error && (
+          <div className="mt-10 rounded-2xl border border-red-200 bg-red-50 px-5 py-12 text-center">
+            <p className="text-red-600">{error}</p>
 
             <button
-              onClick={() => {
-                setSearchTerm("");
-                setSelectedCategory("All Categories");
-              }}
-              className="mt-6 rounded-xl bg-green-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-green-700"
+              onClick={() => window.location.reload()}
+              className="mt-5 rounded-xl bg-green-600 px-6 py-3 font-semibold text-white hover:bg-green-700"
             >
-              Clear Filters
+              Try Again
             </button>
           </div>
         )}
 
-        {/* Loading State */}
-        {!today && (
-          <div className="mt-10 text-center text-sm text-gray-500">
-            Loading upcoming events...
-          </div>
+        {/* Event Cards */}
+        {!loading && !error && (
+          <>
+            <div className="mt-9 grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredEvents.map((event) => (
+                <article
+                  key={event._id}
+                  className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+                >
+                  <div className="relative h-56 overflow-hidden">
+                    <img
+                      src={event.image}
+                      alt={event.title}
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    />
+
+                    <span className="absolute left-4 top-4 rounded-full bg-white px-4 py-1.5 text-xs font-semibold text-green-700 shadow-sm">
+                      {event.category}
+                    </span>
+                  </div>
+
+                  <div className="p-5">
+                    <h3 className="text-xl font-bold text-gray-900 transition group-hover:text-green-700">
+                      {event.title}
+                    </h3>
+
+                    <p className="mt-3 min-h-[48px] text-sm leading-6 text-gray-500">
+                      {event.description}
+                    </p>
+
+                    <div className="mt-5 space-y-3 border-t border-gray-100 pt-4">
+                      <div className="flex items-center gap-3 text-sm text-gray-600">
+                        <CalendarDays
+                          size={17}
+                          className="shrink-0 text-green-600"
+                        />
+                        <span>{formatDate(event.date)}</span>
+                      </div>
+
+                      <div className="flex items-center gap-3 text-sm text-gray-600">
+                        <MapPin
+                          size={17}
+                          className="shrink-0 text-green-600"
+                        />
+                        <span>{event.location}</span>
+                      </div>
+
+                      <div className="flex items-center gap-3 text-sm text-gray-600">
+                        <Users
+                          size={17}
+                          className="shrink-0 text-green-600"
+                        />
+                        <span>
+                          {event.volunteers ?? 0} volunteers interested
+                        </span>
+                      </div>
+                    </div>
+
+                    <Link
+                      href={`/events/${event._id}`}
+                      className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-green-600 py-3 font-semibold text-green-700 transition hover:bg-green-600 hover:text-white"
+                    >
+                      View Details
+                      <ArrowRight size={17} />
+                    </Link>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            {/* Empty State */}
+            {today && filteredEvents.length === 0 && (
+              <div className="mt-10 rounded-2xl border border-dashed border-gray-300 bg-white px-5 py-16 text-center">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
+                  <Search size={28} className="text-green-600" />
+                </div>
+
+                <h3 className="mt-5 text-xl font-bold text-gray-900">
+                  No Events Found
+                </h3>
+
+                <p className="mt-2 text-sm text-gray-500">
+                  Try another search term or select a different category.
+                </p>
+
+                <button
+                  onClick={() => {
+                    setSearchTerm("");
+                    setSelectedCategory("All Categories");
+                  }}
+                  className="mt-6 rounded-xl bg-green-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-green-700"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            )}
+          </>
         )}
       </section>
 
