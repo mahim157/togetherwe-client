@@ -1,7 +1,10 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
 import {
   Search,
   CalendarDays,
@@ -11,6 +14,8 @@ import {
   Heart,
   SlidersHorizontal,
 } from "lucide-react";
+
+import { authClient } from "@/lib/auth-client";
 
 const events = [
   {
@@ -105,15 +110,21 @@ function formatDate(date: string) {
 }
 
 export default function EventsPage() {
+  const router = useRouter();
+
+  // Get the current login session.
+  const { data: session, isPending } = authClient.useSession();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] =
     useState("All Categories");
 
-  // Current date is calculated after the initial render.
   const [today, setToday] = useState<string | null>(null);
 
+  // Set current date after the initial render.
   useEffect(() => {
     const currentDate = new Date();
+
     const formattedToday = [
       currentDate.getFullYear(),
       String(currentDate.getMonth() + 1).padStart(2, "0"),
@@ -123,7 +134,18 @@ export default function EventsPage() {
     setToday(formattedToday);
   }, []);
 
-  // Only show events scheduled for today or a future date.
+  // Handle Create Event navigation.
+  const handleCreateEvent = () => {
+    if (isPending) return;
+
+    if (session?.user) {
+      router.push("/create-event");
+    } else {
+      router.push("/login");
+    }
+  };
+
+  // Show upcoming events only.
   const upcomingEvents = today
     ? events.filter((event) => event.date >= today)
     : [];
@@ -182,12 +204,13 @@ export default function EventsPage() {
                 <ArrowRight size={18} />
               </a>
 
-              <Link
-                href="/login"
-                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3 font-semibold text-gray-700 transition hover:border-green-500 hover:text-green-700"
+              <button
+                onClick={handleCreateEvent}
+                disabled={isPending}
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3 font-semibold text-gray-700 transition hover:border-green-500 hover:text-green-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Create an Event
-              </Link>
+                {isPending ? "Checking Login..." : "Create an Event"}
+              </button>
             </div>
           </div>
 
@@ -297,7 +320,6 @@ export default function EventsPage() {
               key={event.id}
               className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
             >
-              {/* Event Image */}
               <div className="relative h-56 overflow-hidden">
                 <img
                   src={event.image}
@@ -310,7 +332,6 @@ export default function EventsPage() {
                 </span>
               </div>
 
-              {/* Event Information */}
               <div className="p-5">
                 <h3 className="text-xl font-bold text-gray-900 transition group-hover:text-green-700">
                   {event.title}
@@ -405,13 +426,14 @@ export default function EventsPage() {
             community. Start organizing your own event today.
           </p>
 
-          <Link
-            href="/login"
-            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-7 py-3.5 font-semibold text-green-700 shadow-lg transition hover:bg-green-50"
+          <button
+            onClick={handleCreateEvent}
+            disabled={isPending}
+            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-7 py-3.5 font-semibold text-green-700 shadow-lg transition hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Create an Event
             <ArrowRight size={18} />
-          </Link>
+          </button>
         </div>
       </section>
     </main>
