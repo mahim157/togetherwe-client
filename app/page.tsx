@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -20,56 +20,16 @@ import {
 
 import { authClient } from "@/lib/auth-client";
 
-const events = [
-  {
-    title: "Winter Clothes Distribution",
-    category: "Donation",
-    location: "Mirpur 10, Dhaka",
-    date: "November 20, 2026",
-    image: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=900",
-    people: "25 Volunteers",
-  },
-  {
-    title: "Community Tree Plantation",
-    category: "Plantation",
-    location: "Savar, Dhaka",
-    date: "November 25, 2026",
-    image: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=900",
-    people: "18 Volunteers",
-  },
-  {
-    title: "Neighborhood Cleanup Drive",
-    category: "Cleanup",
-    location: "Dhanmondi, Dhaka",
-    date: "November 28, 2026",
-    image: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=900",
-    people: "30 Volunteers",
-  },
-  {
-    title: "Food for Everyone",
-    category: "Donation",
-    location: "Uttara, Dhaka",
-    date: "December 02, 2026",
-    image: "https://images.unsplash.com/photo-1593113598332-cd288d649433?w=900",
-    people: "20 Volunteers",
-  },
-  {
-    title: "Community Health Awareness",
-    category: "Awareness",
-    location: "Mohammadpur, Dhaka",
-    date: "December 05, 2026",
-    image: "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=900",
-    people: "15 Volunteers",
-  },
-  {
-    title: "Help for Street Children",
-    category: "Social Work",
-    location: "Farmgate, Dhaka",
-    date: "December 10, 2026",
-    image: "https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=900",
-    people: "28 Volunteers",
-  },
-];
+type Event = {
+  _id: string;
+  title: string;
+  description: string;
+  category: string;
+  location: string;
+  date: string;
+  image: string;
+  volunteers: number;
+};
 
 const features = [
   {
@@ -107,9 +67,55 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [newsletterMessage, setNewsletterMessage] = useState("");
 
+  // Database Events
+  const [events, setEvents] = useState<Event[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
+  const [eventsError, setEventsError] = useState("");
+
+  // Fetch Recent Events from MongoDB
+  useEffect(() => {
+    async function fetchRecentEvents() {
+      try {
+        setEventsLoading(true);
+        setEventsError("");
+
+        const response = await fetch(
+          "http://localhost:5000/api/events/recent",
+          {
+            cache: "no-store",
+          }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(
+            result.message || "Failed to load events"
+          );
+        }
+
+        setEvents(result.events);
+      } catch (error) {
+        console.error("Recent events error:", error);
+
+        setEventsError(
+          error instanceof Error
+            ? error.message
+            : "Failed to load events"
+        );
+      } finally {
+        setEventsLoading(false);
+      }
+    }
+
+    fetchRecentEvents();
+  }, []);
+
+  // Authentication
   const { data: session, isPending } = authClient.useSession();
   const user = session?.user;
 
+  // Logout
   const handleLogout = async () => {
     try {
       await authClient.signOut();
@@ -123,6 +129,7 @@ export default function Home() {
     }
   };
 
+  // Newsletter
   const handleNewsletterSubmit = (
     e: React.FormEvent<HTMLFormElement>
   ) => {
@@ -165,15 +172,24 @@ export default function Home() {
               Home
             </Link>
 
-            <a href="#features" className="transition hover:text-emerald-600">
+            <a
+              href="#features"
+              className="transition hover:text-emerald-600"
+            >
               Features
             </a>
 
-            <Link href="/events" className="transition hover:text-emerald-600">
+            <Link
+              href="/events"
+              className="transition hover:text-emerald-600"
+            >
               Upcoming Events
             </Link>
 
-            <a href="#gallery" className="transition hover:text-emerald-600">
+            <a
+              href="#gallery"
+              className="transition hover:text-emerald-600"
+            >
               Gallery
             </a>
           </div>
@@ -237,7 +253,6 @@ export default function Home() {
 
                       <div className="mt-2 space-y-1 text-sm">
 
-                        {/* MY PROFILE */}
                         <Link
                           href="/profile"
                           onClick={() => setIsProfileOpen(false)}
@@ -396,7 +411,6 @@ export default function Home() {
 
                   </div>
 
-                  {/* MOBILE MY PROFILE */}
                   <Link
                     href="/profile"
                     onClick={() => setIsMenuOpen(false)}
@@ -584,6 +598,14 @@ export default function Home() {
           {features.map((feature) => {
             const Icon = feature.icon;
 
+            // Feature-specific navigation
+            const featureLink =
+              feature.title === "Create Events"
+                ? user
+                  ? "/events/create"
+                  : "/register"
+                : "/events";
+
             return (
               <div
                 key={feature.title}
@@ -601,11 +623,13 @@ export default function Home() {
                   {feature.description}
                 </p>
 
+                {/* UPDATED LEARN MORE BUTTON */}
                 <Link
-                  href="/events"
-                  className="mt-6 inline-flex items-center gap-2 font-semibold text-emerald-600"
+                  href={featureLink}
+                  className="mt-6 inline-flex items-center gap-2 font-semibold text-emerald-600 transition-all duration-300 hover:gap-3 hover:text-emerald-700"
                 >
-                  Learn More <ArrowUpRight size={17} />
+                  Learn More
+                  <ArrowUpRight size={17} />
                 </Link>
               </div>
             );
@@ -636,60 +660,133 @@ export default function Home() {
               href="/events"
               className="inline-flex items-center gap-2 font-bold text-emerald-600 transition hover:gap-3"
             >
-              View All Events <ArrowRight size={18} />
+              View All Events
+              <ArrowRight size={18} />
             </Link>
           </div>
 
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {events.map((event) => (
-              <article
-                key={event.title}
-                className="overflow-hidden rounded-3xl bg-white shadow-sm transition duration-300 hover:-translate-y-2 hover:shadow-xl"
+          {/* LOADING STATE */}
+          {eventsLoading && (
+            <div className="py-16 text-center">
+              <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-emerald-100 border-t-emerald-600" />
+
+              <p className="mt-4 font-medium text-slate-500">
+                Loading upcoming events...
+              </p>
+            </div>
+          )}
+
+          {/* ERROR STATE */}
+          {!eventsLoading && eventsError && (
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-10 text-center">
+              <p className="font-semibold text-red-600">
+                {eventsError}
+              </p>
+
+              <p className="mt-2 text-sm text-red-500">
+                Please check your backend server and try again.
+              </p>
+            </div>
+          )}
+
+          {/* EMPTY STATE */}
+          {!eventsLoading && !eventsError && events.length === 0 && (
+            <div className="rounded-3xl border border-dashed border-gray-300 bg-white px-6 py-16 text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                <CalendarDays size={30} />
+              </div>
+
+              <h3 className="mt-5 text-xl font-bold text-slate-800">
+                No Upcoming Events Yet
+              </h3>
+
+              <p className="mt-2 text-slate-500">
+                Be the first to create an event for your community.
+              </p>
+
+              <Link
+                href={user ? "/events/create" : "/register"}
+                className="mt-6 inline-flex items-center gap-2 rounded-full bg-emerald-600 px-6 py-3 font-semibold text-white transition hover:bg-emerald-700"
               >
-                <div className="relative">
-                  <img
-                    src={event.image}
-                    alt={event.title}
-                    className="h-56 w-full object-cover"
-                  />
+                Create an Event
+                <ArrowRight size={17} />
+              </Link>
+            </div>
+          )}
 
-                  <span className="absolute left-5 top-5 rounded-full bg-white px-4 py-2 text-xs font-bold text-emerald-700 shadow">
-                    {event.category}
-                  </span>
-                </div>
+          {/* DATABASE EVENTS */}
+          {!eventsLoading && !eventsError && events.length > 0 && (
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              {events.map((event) => (
+                <article
+                  key={event._id}
+                  className="overflow-hidden rounded-3xl bg-white shadow-sm transition duration-300 hover:-translate-y-2 hover:shadow-xl"
+                >
+                  <div className="relative">
+                    <img
+                      src={event.image}
+                      alt={event.title}
+                      className="h-56 w-full object-cover"
+                    />
 
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-slate-900">
-                    {event.title}
-                  </h3>
-
-                  <div className="mt-5 space-y-3 text-sm text-slate-500">
-                    <p className="flex items-center gap-2">
-                      <CalendarDays size={17} className="shrink-0 text-emerald-600" />
-                      {event.date}
-                    </p>
-
-                    <p className="flex items-center gap-2">
-                      <MapPin size={17} className="shrink-0 text-emerald-600" />
-                      {event.location}
-                    </p>
-
-                    <p className="flex items-center gap-2">
-                      <Users size={17} className="shrink-0 text-emerald-600" />
-                      {event.people}
-                    </p>
+                    <span className="absolute left-5 top-5 rounded-full bg-white px-4 py-2 text-xs font-bold text-emerald-700 shadow">
+                      {event.category}
+                    </span>
                   </div>
 
-                  <Link
-                    href="/events"
-                    className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-50 py-3 font-semibold text-emerald-700 transition hover:bg-emerald-600 hover:text-white"
-                  >
-                    View Event <ArrowRight size={17} />
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-slate-900">
+                      {event.title}
+                    </h3>
+
+                    <div className="mt-5 space-y-3 text-sm text-slate-500">
+                      <p className="flex items-center gap-2">
+                        <CalendarDays
+                          size={17}
+                          className="shrink-0 text-emerald-600"
+                        />
+
+                        {new Date(
+                          `${event.date}T00:00:00`
+                        ).toLocaleDateString("en-US", {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </p>
+
+                      <p className="flex items-center gap-2">
+                        <MapPin
+                          size={17}
+                          className="shrink-0 text-emerald-600"
+                        />
+
+                        {event.location}
+                      </p>
+
+                      <p className="flex items-center gap-2">
+                        <Users
+                          size={17}
+                          className="shrink-0 text-emerald-600"
+                        />
+
+                        {event.volunteers ?? 0} Volunteers
+                      </p>
+                    </div>
+
+                    <Link
+                      href={`/events/${event._id}`}
+                      className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-50 py-3 font-semibold text-emerald-700 transition hover:bg-emerald-600 hover:text-white"
+                    >
+                      View Event
+                      <ArrowRight size={17} />
+                    </Link>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+
         </div>
       </section>
 
@@ -764,7 +861,8 @@ export default function Home() {
               type="submit"
               className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-600 px-7 py-4 font-semibold text-white transition hover:bg-emerald-700"
             >
-              Subscribe <ArrowRight size={17} />
+              Subscribe
+              <ArrowRight size={17} />
             </button>
           </form>
 
@@ -831,16 +929,27 @@ export default function Home() {
 
             <div className="space-y-3 text-sm text-slate-400">
               <p>
-                <Link href="/" className="hover:text-emerald-400">Home</Link>
+                <Link href="/" className="hover:text-emerald-400">
+                  Home
+                </Link>
               </p>
+
               <p>
-                <Link href="/events" className="hover:text-emerald-400">Upcoming Events</Link>
+                <Link href="/events" className="hover:text-emerald-400">
+                  Upcoming Events
+                </Link>
               </p>
+
               <p>
-                <a href="#features" className="hover:text-emerald-400">Features</a>
+                <a href="#features" className="hover:text-emerald-400">
+                  Features
+                </a>
               </p>
+
               <p>
-                <a href="#gallery" className="hover:text-emerald-400">Gallery</a>
+                <a href="#gallery" className="hover:text-emerald-400">
+                  Gallery
+                </a>
               </p>
             </div>
           </div>
@@ -850,13 +959,21 @@ export default function Home() {
 
             <div className="space-y-3 text-sm text-slate-400">
               <p>
-                <Link href="/register" className="hover:text-emerald-400">Join Community</Link>
+                <Link href="/register" className="hover:text-emerald-400">
+                  Join Community
+                </Link>
               </p>
+
               <p>
-                <Link href="/login" className="hover:text-emerald-400">Login</Link>
+                <Link href="/login" className="hover:text-emerald-400">
+                  Login
+                </Link>
               </p>
+
               <p>
-                <Link href="/events" className="hover:text-emerald-400">Explore Events</Link>
+                <Link href="/events" className="hover:text-emerald-400">
+                  Explore Events
+                </Link>
               </p>
             </div>
           </div>
