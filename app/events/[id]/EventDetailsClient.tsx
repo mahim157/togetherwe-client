@@ -3,6 +3,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
 import {
   ArrowLeft,
   CalendarDays,
@@ -28,8 +30,14 @@ type Event = {
 };
 
 export default function EventDetailsClient({ id }: { id: string }) {
+  const router = useRouter();
+
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
+  const [joining, setJoining] = useState(false);
+  const [joinMessage, setJoinMessage] = useState("");
+  const [joinError, setJoinError] = useState("");
+  const [alreadyJoined, setAlreadyJoined] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -42,16 +50,12 @@ export default function EventDetailsClient({ id }: { id: string }) {
           throw new Error("Invalid event ID");
         }
 
-        console.log("Fetching Event ID:", id);
-
         const response = await fetch(
           `http://localhost:5000/api/events/${id}`,
           { cache: "no-store" }
         );
 
         const result = await response.json();
-
-        console.log("Event API Response:", result);
 
         if (!response.ok || !result.success) {
           throw new Error(result.message || "Failed to load event");
@@ -60,6 +64,7 @@ export default function EventDetailsClient({ id }: { id: string }) {
         setEvent(result.event);
       } catch (err) {
         console.error("Event details error:", err);
+
         setError(
           err instanceof Error ? err.message : "Something went wrong"
         );
@@ -70,6 +75,62 @@ export default function EventDetailsClient({ id }: { id: string }) {
 
     fetchEvent();
   }, [id]);
+
+  async function handleJoin() {
+    if (!event || joining || alreadyJoined) return;
+
+    try {
+      setJoining(true);
+      setJoinMessage("");
+      setJoinError("");
+
+      const response = await fetch(
+        `http://localhost:5000/api/events/${id}/join`,
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
+
+      const result = await response.json();
+
+      if (response.status === 401) {
+        router.push("/login");
+        return;
+      }
+
+      // Prevent duplicate joining
+      if (response.status === 409) {
+        setAlreadyJoined(true);
+        setJoinMessage("You have already joined this event.");
+        return;
+      }
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Failed to join event");
+      }
+
+      setEvent((previousEvent) =>
+        previousEvent
+          ? {
+              ...previousEvent,
+              volunteers: previousEvent.volunteers + 1,
+            }
+          : null
+      );
+
+      setAlreadyJoined(true);
+      setJoinMessage("You have successfully joined this event!");
+    } catch (err) {
+      console.error("Join event error:", err);
+
+      setJoinError(
+        err instanceof Error ? err.message : "Something went wrong"
+      );
+    } finally {
+      setJoining(false);
+    }
+  }
 
   async function handleShare() {
     if (!event) return;
@@ -256,13 +317,40 @@ export default function EventDetailsClient({ id }: { id: string }) {
                 </div>
               </div>
 
-              <Link
-                href="/login"
-                className="mt-8 flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-5 py-3 font-semibold text-white hover:bg-green-700"
+              {joinMessage && (
+                <p className="mt-5 rounded-lg bg-green-50 p-3 text-sm font-medium text-green-700">
+                  {joinMessage}
+                </p>
+              )}
+
+              {joinError && (
+                <p className="mt-5 rounded-lg bg-red-50 p-3 text-sm font-medium text-red-700">
+                  {joinError}
+                </p>
+              )}
+
+              <button
+                onClick={handleJoin}
+                disabled={joining || alreadyJoined}
+                className="mt-8 flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-5 py-3 font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <Heart size={18} />
-                Join This Event
-              </Link>
+                {joining ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    Joining...
+                  </>
+                ) : alreadyJoined ? (
+                  <>
+                    <Heart size={18} />
+                    Already Joined
+                  </>
+                ) : (
+                  <>
+                    <Heart size={18} />
+                    Join This Event
+                  </>
+                )}
+              </button>
 
               <button
                 onClick={handleShare}
