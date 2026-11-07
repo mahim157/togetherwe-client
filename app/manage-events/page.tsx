@@ -2,8 +2,27 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  ArrowLeft,
+  Plus,
+  CalendarDays,
+  MapPin,
+  Users,
+  Pencil,
+  Trash2,
+  Eye,
+  X,
+  Loader2,
+  Heart,
+  CheckCircle2,
+  AlertCircle,
+  Image as ImageIcon,
+  Save,
+  CalendarCheck,
+} from "lucide-react";
 
 import { authClient } from "@/lib/auth-client";
 
@@ -35,6 +54,15 @@ const categories = [
   "Other",
 ];
 
+function getLocalDate() {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
 export default function ManageEventsPage() {
   const router = useRouter();
 
@@ -59,7 +87,6 @@ export default function ManageEventsPage() {
     }, 3500);
   }
 
-  // Generate JWT token
   async function getAccessToken() {
     const tokenResult = await authClient.token();
 
@@ -71,7 +98,6 @@ export default function ManageEventsPage() {
     return tokenResult.data.token;
   }
 
-  // Fetch My Events
   async function fetchMyEvents() {
     try {
       setLoading(true);
@@ -115,11 +141,37 @@ export default function ManageEventsPage() {
     fetchMyEvents();
   }, []);
 
-  // Update Event
-  async function handleUpdate(e: React.FormEvent<HTMLFormElement>) {
+  async function handleUpdate(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     if (!editingEvent) return;
+
+    if (
+      !editingEvent.title.trim() ||
+      !editingEvent.description.trim() ||
+      !editingEvent.category ||
+      !editingEvent.image.trim() ||
+      !editingEvent.location.trim() ||
+      !editingEvent.date
+    ) {
+      showToast("Please complete all required fields.", "error");
+      return;
+    }
+
+    if (editingEvent.title.trim().length < 3) {
+      showToast("Event title must be at least 3 characters.", "error");
+      return;
+    }
+
+    if (editingEvent.description.trim().length < 10) {
+      showToast("Description must be at least 10 characters.", "error");
+      return;
+    }
+
+    if (new Date(editingEvent.date + "T00:00:00") < new Date(getLocalDate() + "T00:00:00")) {
+      showToast("Please select today or a future date.", "error");
+      return;
+    }
 
     try {
       setSaving(true);
@@ -136,11 +188,11 @@ export default function ManageEventsPage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          title: editingEvent.title,
-          description: editingEvent.description,
+          title: editingEvent.title.trim(),
+          description: editingEvent.description.trim(),
           category: editingEvent.category,
-          image: editingEvent.image,
-          location: editingEvent.location,
+          image: editingEvent.image.trim(),
+          location: editingEvent.location.trim(),
           date: editingEvent.date,
         }),
       });
@@ -158,7 +210,9 @@ export default function ManageEventsPage() {
 
       setEvents((previousEvents) =>
         previousEvents.map((event) =>
-          event._id === editingEvent._id ? editingEvent : event
+          event._id === editingEvent._id
+            ? { ...editingEvent }
+            : event
         )
       );
 
@@ -174,7 +228,6 @@ export default function ManageEventsPage() {
     }
   }
 
-  // Delete Event
   async function handleDelete() {
     if (!confirmDeleteEvent) return;
 
@@ -226,192 +279,287 @@ export default function ManageEventsPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50">
-        <p className="text-lg font-medium text-slate-600">
-          Loading your events...
-        </p>
+      <main className="flex min-h-screen items-center justify-center bg-[#faf9f2] px-4 dark:bg-[#0d1c13]">
+        <div className="text-center">
+          <Loader2 className="mx-auto h-10 w-10 animate-spin text-[#174c38] dark:text-[#d5ea83]" />
+          <p className="mt-4 font-medium text-[#778478] dark:text-[#a5b5a6]">
+            Loading your events...
+          </p>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-12 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[#faf9f2] px-4 py-10 text-[#173f2c] dark:bg-[#0d1c13] dark:text-[#edf4e9] sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
 
-        {/* Page Header */}
-        <div className="mb-10 flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
-          <div>
-            <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-emerald-600">
-              Your Dashboard
-            </p>
+        {/* Navbar */}
+        <nav className="mb-12 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#174c38] text-white">
+              <Heart size={21} fill="currentColor" />
+            </div>
+            <span className="text-xl font-extrabold tracking-tight">
+              Together<span className="text-[#719b4e]">We.</span>
+            </span>
+          </Link>
 
-            <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">
-              Manage Events
-            </h1>
+          <Link
+            href="/events"
+            className="inline-flex items-center gap-2 rounded-full border border-[#e5e9dc] bg-white px-4 py-2.5 text-sm font-semibold text-[#174c38] transition hover:bg-[#f0f4e8] dark:border-[#294333] dark:bg-[#14271c] dark:text-[#d5ea83] dark:hover:bg-[#1b3526]"
+          >
+            <ArrowLeft size={16} />
+            Back to Events
+          </Link>
+        </nav>
 
-            <p className="mt-3 text-slate-600">
-              View, update and manage the events you have created.
-            </p>
+        {/* Page Heading */}
+        <section className="mb-10">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#eaf1dd] px-4 py-2 text-sm font-semibold text-[#174c38] dark:bg-[#1b3526] dark:text-[#d5ea83]">
+            <CalendarCheck size={16} />
+            Your Dashboard
           </div>
 
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/events"
-              className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 transition hover:bg-slate-100"
-            >
-              ← Back to Events
-            </Link>
+          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+            <div>
+              <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl">
+                Manage Your Events
+              </h1>
+
+              <p className="mt-3 max-w-xl leading-7 text-[#778478] dark:text-[#a5b5a6]">
+                Keep your community activities organized. Update your event
+                details and manage the impact you are creating.
+              </p>
+            </div>
 
             <Link
-              href="/events/create"
-              className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-6 py-3 font-semibold text-white transition hover:bg-emerald-700"
+              href="/create-event"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#174c38] px-6 py-3.5 font-semibold text-white shadow-lg shadow-[#174c38]/15 transition hover:-translate-y-0.5 hover:bg-[#246647] dark:bg-[#d5ea83] dark:text-[#173f2c] dark:hover:bg-[#c5df70]"
             >
-              + Create New Event
+              <Plus size={19} />
+              Create New Event
             </Link>
           </div>
-        </div>
+        </section>
 
-        {/* Error Message */}
+        {/* Error */}
         {error && (
-          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
-            {error}
+          <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">
+            <div className="flex items-center gap-2">
+              <AlertCircle size={19} />
+              <p className="text-sm font-medium">{error}</p>
+            </div>
 
             <button
               onClick={fetchMyEvents}
-              className="ml-3 font-semibold underline"
+              className="font-semibold underline underline-offset-4"
             >
               Try Again
             </button>
           </div>
         )}
 
-        {/* Event Count */}
-        <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">
-            Total Events Created
-          </p>
+        {/* Statistics */}
+        <section className="mb-8 grid gap-4 sm:grid-cols-2">
+          <div className="rounded-[1.5rem] border border-[#e5e9dc] bg-white p-6 shadow-sm dark:border-[#294333] dark:bg-[#14271c]">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-[#778478] dark:text-[#a5b5a6]">
+                  Total Events Created
+                </p>
+                <p className="mt-2 text-4xl font-extrabold text-[#174c38] dark:text-[#d5ea83]">
+                  {events.length}
+                </p>
+              </div>
 
-          <p className="mt-1 text-3xl font-bold text-emerald-600">
-            {events.length}
-          </p>
-        </div>
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#eaf1dd] text-[#174c38] dark:bg-[#1b3526] dark:text-[#d5ea83]">
+                <CalendarDays size={27} />
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-[1.5rem] border border-[#e5e9dc] bg-white p-6 shadow-sm dark:border-[#294333] dark:bg-[#14271c]">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-[#778478] dark:text-[#a5b5a6]">
+                  Total Volunteers
+                </p>
+                <p className="mt-2 text-4xl font-extrabold text-[#174c38] dark:text-[#d5ea83]">
+                  {events.reduce(
+                    (total, event) => total + (event.volunteers || 0),
+                    0
+                  )}
+                </p>
+              </div>
+
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#eaf1dd] text-[#174c38] dark:bg-[#1b3526] dark:text-[#d5ea83]">
+                <Users size={27} />
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Empty State */}
         {!error && events.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center">
-            <div className="mb-4 text-5xl">📅</div>
+          <section className="rounded-[2rem] border border-dashed border-[#cbd7c3] bg-white px-6 py-20 text-center dark:border-[#294333] dark:bg-[#14271c]">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-[#eaf1dd] text-[#174c38] dark:bg-[#1b3526] dark:text-[#d5ea83]">
+              <CalendarDays size={36} />
+            </div>
 
-            <h2 className="text-2xl font-bold text-slate-900">
-              You haven't created any events yet.
+            <h2 className="mt-6 text-2xl font-extrabold">
+              No Events Yet
             </h2>
 
-            <p className="mx-auto mt-3 max-w-md text-slate-600">
-              Start making a difference in your community by creating your
-              first social development event.
+            <p className="mx-auto mt-3 max-w-md leading-7 text-[#778478] dark:text-[#a5b5a6]">
+              You haven't created any events yet. Start making a difference
+              in your community by publishing your first event.
             </p>
 
             <Link
-              href="/events/create"
-              className="mt-6 inline-flex rounded-xl bg-emerald-600 px-6 py-3 font-semibold text-white transition hover:bg-emerald-700"
+              href="/create-event"
+              className="mt-7 inline-flex items-center gap-2 rounded-full bg-[#174c38] px-6 py-3.5 font-semibold text-white transition hover:bg-[#246647] dark:bg-[#d5ea83] dark:text-[#173f2c]"
             >
+              <Plus size={18} />
               Create Your First Event
             </Link>
-          </div>
+          </section>
         )}
 
         {/* Events Grid */}
         {events.length > 0 && (
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {events.map((event) => (
-              <article
-                key={event._id}
-                className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-              >
-                <div className="h-52 overflow-hidden bg-slate-100">
-                  <img
-                    src={event.image}
-                    alt={event.title}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
+          <section>
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-extrabold">
+                  Your Created Events
+                </h2>
+                <p className="mt-1 text-sm text-[#778478] dark:text-[#a5b5a6]">
+                  Update or remove your published events.
+                </p>
+              </div>
+            </div>
 
-                <div className="p-5">
-                  <span className="inline-block rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                    {event.category}
-                  </span>
+            <div className="grid gap-7 md:grid-cols-2 xl:grid-cols-3">
+              {events.map((event) => (
+                <article
+                  key={event._id}
+                  className="group overflow-hidden rounded-[1.7rem] border border-[#e5e9dc] bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-[#294333] dark:bg-[#14271c]"
+                >
+                  <div className="relative h-56 overflow-hidden bg-[#eaf1dd] dark:bg-[#1b3526]">
+                    <img
+                      src={event.image}
+                      alt={event.title}
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
 
-                  <h2 className="mt-3 text-xl font-bold text-slate-900">
-                    {event.title}
-                  </h2>
-
-                  <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">
-                    {event.description}
-                  </p>
-
-                  <div className="mt-4 space-y-2 text-sm text-slate-500">
-                    <p>📍 {event.location}</p>
-                    <p>📅 {event.date}</p>
-                    <p>👥 {event.volunteers || 0} Volunteers</p>
+                    <div className="absolute left-4 top-4">
+                      <span className="rounded-full border border-white/30 bg-white/90 px-4 py-2 text-xs font-bold text-[#174c38] shadow-sm backdrop-blur">
+                        {event.category}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="mt-6 flex gap-3">
-                    <button
-                      onClick={() => setEditingEvent({ ...event })}
-                      className="flex-1 rounded-lg bg-blue-50 px-4 py-2.5 font-semibold text-blue-700 transition hover:bg-blue-100"
-                    >
-                      Edit
-                    </button>
+                  <div className="p-6">
+                    <h3 className="line-clamp-1 text-xl font-extrabold">
+                      {event.title}
+                    </h3>
 
-                    <button
-                      onClick={() => setConfirmDeleteEvent(event)}
-                      disabled={deletingId === event._id}
-                      className="flex-1 rounded-lg bg-red-50 px-4 py-2.5 font-semibold text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    <p className="mt-3 line-clamp-3 min-h-[4.5rem] text-sm leading-6 text-[#778478] dark:text-[#a5b5a6]">
+                      {event.description}
+                    </p>
+
+                    <div className="mt-5 space-y-3 border-t border-[#e5e9dc] pt-5 text-sm text-[#778478] dark:border-[#294333] dark:text-[#a5b5a6]">
+                      <div className="flex items-center gap-2">
+                        <MapPin size={17} className="shrink-0 text-[#719b4e]" />
+                        <span className="line-clamp-1">{event.location}</span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <CalendarDays size={17} className="shrink-0 text-[#719b4e]" />
+                        <span>{event.date}</span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Users size={17} className="shrink-0 text-[#719b4e]" />
+                        <span>{event.volunteers || 0} Volunteers</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setEditingEvent({ ...event })}
+                        className="inline-flex items-center justify-center gap-2 rounded-full bg-[#eaf1dd] px-4 py-3 text-sm font-bold text-[#174c38] transition hover:bg-[#dce9c9] dark:bg-[#1b3526] dark:text-[#d5ea83] dark:hover:bg-[#294333]"
+                      >
+                        <Pencil size={16} />
+                        Edit
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDeleteEvent(event)}
+                        disabled={deletingId === event._id}
+                        className="inline-flex items-center justify-center gap-2 rounded-full bg-red-50 px-4 py-3 text-sm font-bold text-red-600 transition hover:bg-red-100 disabled:opacity-50 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-950/50"
+                      >
+                        <Trash2 size={16} />
+                        Delete
+                      </button>
+                    </div>
+
+                    <Link
+                      href={`/events/${event._id}`}
+                      className="mt-4 flex items-center justify-center gap-2 text-sm font-bold text-[#719b4e] transition hover:text-[#174c38] dark:text-[#d5ea83] dark:hover:text-white"
                     >
-                      Delete
-                    </button>
+                      <Eye size={16} />
+                      View Event Details
+                    </Link>
                   </div>
-
-                  <Link
-                    href={`/events/${event._id}`}
-                    className="mt-3 block text-center text-sm font-semibold text-emerald-700 hover:underline"
-                  >
-                    View Event Details →
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
+                </article>
+              ))}
+            </div>
+          </section>
         )}
       </div>
 
-      {/* Edit Event Modal */}
+      {/* Edit Modal */}
       {editingEvent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4">
-          <div className="my-8 w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl sm:p-8">
-            <div className="mb-6 flex items-center justify-between gap-4">
-              <h2 className="text-2xl font-bold text-slate-900">
-                Edit Event
-              </h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#0d1c13]/70 p-4 backdrop-blur-sm">
+          <div className="my-8 w-full max-w-2xl rounded-[2rem] border border-[#e5e9dc] bg-[#faf9f2] p-6 shadow-2xl dark:border-[#294333] dark:bg-[#14271c] sm:p-8">
+            <div className="mb-7 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-wider text-[#719b4e]">
+                  Event Management
+                </p>
+                <h2 className="mt-1 text-2xl font-extrabold">
+                  Edit Event
+                </h2>
+              </div>
 
               <button
+                type="button"
                 onClick={() => setEditingEvent(null)}
                 disabled={saving}
-                className="text-2xl text-slate-400 hover:text-slate-700 disabled:opacity-50"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#eaf1dd] text-[#174c38] transition hover:bg-[#dce9c9] disabled:opacity-50 dark:bg-[#1b3526] dark:text-[#d5ea83]"
                 aria-label="Close edit form"
               >
-                ×
+                <X size={21} />
               </button>
             </div>
 
             <form onSubmit={handleUpdate} className="space-y-5">
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                <label className="mb-2 block text-sm font-bold">
                   Event Title
                 </label>
-
                 <input
                   type="text"
                   required
+                  minLength={3}
+                  maxLength={100}
                   value={editingEvent.title}
                   onChange={(e) =>
                     setEditingEvent({
@@ -419,17 +567,18 @@ export default function ManageEventsPage() {
                       title: e.target.value,
                     })
                   }
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  className="w-full rounded-xl border border-[#e5e9dc] bg-white px-4 py-3.5 text-[#173f2c] outline-none transition placeholder:text-[#a5b5a6] focus:border-[#719b4e] focus:ring-2 focus:ring-[#719b4e]/20 dark:border-[#294333] dark:bg-[#0d1c13] dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                <label className="mb-2 block text-sm font-bold">
                   Description
                 </label>
-
                 <textarea
                   required
+                  minLength={10}
+                  maxLength={2000}
                   rows={4}
                   value={editingEvent.description}
                   onChange={(e) =>
@@ -438,15 +587,14 @@ export default function ManageEventsPage() {
                       description: e.target.value,
                     })
                   }
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  className="w-full resize-y rounded-xl border border-[#e5e9dc] bg-white px-4 py-3.5 text-[#173f2c] outline-none transition focus:border-[#719b4e] focus:ring-2 focus:ring-[#719b4e]/20 dark:border-[#294333] dark:bg-[#0d1c13] dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                <label className="mb-2 block text-sm font-bold">
                   Event Category
                 </label>
-
                 <select
                   required
                   value={editingEvent.category}
@@ -456,7 +604,7 @@ export default function ManageEventsPage() {
                       category: e.target.value,
                     })
                   }
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-emerald-500"
+                  className="w-full rounded-xl border border-[#e5e9dc] bg-white px-4 py-3.5 text-[#173f2c] outline-none focus:border-[#719b4e] dark:border-[#294333] dark:bg-[#0d1c13] dark:text-white"
                 >
                   {categories.map((category) => (
                     <option key={category} value={category}>
@@ -467,32 +615,37 @@ export default function ManageEventsPage() {
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                <label className="mb-2 block text-sm font-bold">
                   Thumbnail Image URL
                 </label>
-
-                <input
-                  type="url"
-                  required
-                  value={editingEvent.image}
-                  onChange={(e) =>
-                    setEditingEvent({
-                      ...editingEvent,
-                      image: e.target.value,
-                    })
-                  }
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-emerald-500"
-                />
+                <div className="relative">
+                  <ImageIcon
+                    size={18}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-[#719b4e]"
+                  />
+                  <input
+                    type="url"
+                    required
+                    value={editingEvent.image}
+                    onChange={(e) =>
+                      setEditingEvent({
+                        ...editingEvent,
+                        image: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-xl border border-[#e5e9dc] bg-white py-3.5 pl-11 pr-4 text-[#173f2c] outline-none focus:border-[#719b4e] dark:border-[#294333] dark:bg-[#0d1c13] dark:text-white"
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                <label className="mb-2 block text-sm font-bold">
                   Location
                 </label>
-
                 <input
                   type="text"
                   required
+                  minLength={3}
                   value={editingEvent.location}
                   onChange={(e) =>
                     setEditingEvent({
@@ -500,19 +653,18 @@ export default function ManageEventsPage() {
                       location: e.target.value,
                     })
                   }
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-emerald-500"
+                  className="w-full rounded-xl border border-[#e5e9dc] bg-white px-4 py-3.5 text-[#173f2c] outline-none focus:border-[#719b4e] dark:border-[#294333] dark:bg-[#0d1c13] dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                <label className="mb-2 block text-sm font-bold">
                   Event Date
                 </label>
-
                 <input
                   type="date"
                   required
-                  min={new Date().toISOString().split("T")[0]}
+                  min={getLocalDate()}
                   value={editingEvent.date}
                   onChange={(e) =>
                     setEditingEvent({
@@ -520,16 +672,16 @@ export default function ManageEventsPage() {
                       date: e.target.value,
                     })
                   }
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-emerald-500"
+                  className="w-full rounded-xl border border-[#e5e9dc] bg-white px-4 py-3.5 text-[#173f2c] outline-none focus:border-[#719b4e] dark:border-[#294333] dark:bg-[#0d1c13] dark:text-white"
                 />
               </div>
 
-              <div className="flex flex-col-reverse gap-3 pt-3 sm:flex-row sm:justify-end">
+              <div className="flex flex-col-reverse gap-3 border-t border-[#e5e9dc] pt-6 dark:border-[#294333] sm:flex-row sm:justify-end">
                 <button
                   type="button"
                   onClick={() => setEditingEvent(null)}
                   disabled={saving}
-                  className="rounded-xl border border-slate-300 px-6 py-3 font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+                  className="rounded-full border border-[#d5ddce] px-6 py-3 font-bold text-[#174c38] transition hover:bg-[#eaf1dd] disabled:opacity-50 dark:border-[#294333] dark:text-[#d5ea83] dark:hover:bg-[#1b3526]"
                 >
                   Cancel
                 </button>
@@ -537,9 +689,19 @@ export default function ManageEventsPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="rounded-xl bg-emerald-600 px-6 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[#174c38] px-7 py-3 font-bold text-white transition hover:bg-[#246647] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#d5ea83] dark:text-[#173f2c]"
                 >
-                  {saving ? "Updating..." : "Save Changes"}
+                  {saving ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={18} />
+                      Save Changes
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -549,40 +711,27 @@ export default function ManageEventsPage() {
 
       {/* Delete Confirmation Modal */}
       {confirmDeleteEvent && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#0d1c13]/75 p-4 backdrop-blur-sm">
           <div
-            className="w-full max-w-md rounded-2xl bg-white p-7 shadow-2xl"
+            className="w-full max-w-md rounded-[2rem] border border-[#e5e9dc] bg-[#faf9f2] p-7 shadow-2xl dark:border-[#294333] dark:bg-[#14271c]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="delete-modal-title"
           >
-            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                className="h-8 w-8 text-red-600"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 9v4m0 4h.01M10.3 3.86 1.9 18.4A2 2 0 0 0 3.63 21h16.74a2 2 0 0 0 1.73-2.6L13.7 3.86a2 2 0 0 0-3.46 0Z"
-                />
-              </svg>
+            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-100 text-red-600 dark:bg-red-950/40 dark:text-red-300">
+              <Trash2 size={29} />
             </div>
 
             <h2
               id="delete-modal-title"
-              className="text-center text-2xl font-bold text-slate-900"
+              className="text-center text-2xl font-extrabold"
             >
-              Delete this event?
+              Delete This Event?
             </h2>
 
-            <p className="mt-3 text-center leading-6 text-slate-600">
+            <p className="mt-3 text-center text-sm leading-7 text-[#778478] dark:text-[#a5b5a6]">
               Are you sure you want to delete{" "}
-              <span className="font-semibold text-slate-900">
+              <span className="font-bold text-[#173f2c] dark:text-white">
                 {confirmDeleteEvent.title}
               </span>
               ? This action cannot be undone.
@@ -593,7 +742,7 @@ export default function ManageEventsPage() {
                 type="button"
                 onClick={() => setConfirmDeleteEvent(null)}
                 disabled={deletingId !== ""}
-                className="flex-1 rounded-xl border border-slate-300 px-5 py-3 font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+                className="flex-1 rounded-full border border-[#d5ddce] px-5 py-3 font-bold text-[#174c38] transition hover:bg-[#eaf1dd] disabled:opacity-50 dark:border-[#294333] dark:text-[#d5ea83]"
               >
                 Cancel
               </button>
@@ -602,76 +751,61 @@ export default function ManageEventsPage() {
                 type="button"
                 onClick={handleDelete}
                 disabled={deletingId !== ""}
-                className="flex-1 rounded-xl bg-red-600 px-5 py-3 font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-red-600 px-5 py-3 font-bold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {deletingId ? "Deleting..." : "Confirm Delete"}
+                {deletingId ? (
+                  <>
+                    <Loader2 size={17} className="animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={17} />
+                    Confirm Delete
+                  </>
+                )}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Toast Notification */}
+      {/* Toast */}
       {toast && (
         <div className="fixed right-4 top-5 z-[100] w-[calc(100%-2rem)] max-w-sm animate-in slide-in-from-top-3 duration-300">
           <div
-            className={`flex items-center gap-3 rounded-xl border p-4 shadow-xl ${
+            className={`flex items-center gap-3 rounded-2xl border bg-white p-4 shadow-xl dark:bg-[#14271c] ${
               toast.type === "success"
-                ? "border-emerald-200 bg-white"
-                : "border-red-200 bg-white"
+                ? "border-[#cfe0bd] dark:border-[#416443]"
+                : "border-red-200 dark:border-red-900"
             }`}
             role="status"
           >
             <div
               className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
                 toast.type === "success"
-                  ? "bg-emerald-100 text-emerald-600"
-                  : "bg-red-100 text-red-600"
+                  ? "bg-[#eaf1dd] text-[#174c38] dark:bg-[#1b3526] dark:text-[#d5ea83]"
+                  : "bg-red-100 text-red-600 dark:bg-red-950/40 dark:text-red-300"
               }`}
             >
               {toast.type === "success" ? (
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  className="h-6 w-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="m5 12 4 4L19 6"
-                  />
-                </svg>
+                <CheckCircle2 size={22} />
               ) : (
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  className="h-6 w-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 8v4m0 4h.01M5 19h14"
-                  />
-                </svg>
+                <AlertCircle size={22} />
               )}
             </div>
 
             <div className="min-w-0 flex-1">
               <p
-                className={`font-semibold ${
+                className={`font-bold ${
                   toast.type === "success"
-                    ? "text-emerald-700"
-                    : "text-red-700"
+                    ? "text-[#174c38] dark:text-[#d5ea83]"
+                    : "text-red-700 dark:text-red-300"
                 }`}
               >
                 {toast.type === "success" ? "Success" : "Error"}
               </p>
-
-              <p className="mt-0.5 text-sm text-slate-600">
+              <p className="mt-0.5 text-sm text-[#778478] dark:text-[#a5b5a6]">
                 {toast.message}
               </p>
             </div>
@@ -679,14 +813,19 @@ export default function ManageEventsPage() {
             <button
               type="button"
               onClick={() => setToast(null)}
-              className="text-xl text-slate-400 transition hover:text-slate-700"
+              className="rounded-full p-1 text-[#778478] transition hover:bg-[#eaf1dd] hover:text-[#174c38] dark:hover:bg-[#1b3526] dark:hover:text-white"
               aria-label="Close notification"
             >
-              ×
+              <X size={19} />
             </button>
           </div>
         </div>
       )}
+
+      {/* Footer */}
+      <footer className="mx-auto mt-16 max-w-7xl border-t border-[#e5e9dc] py-7 text-center text-sm text-[#778478] dark:border-[#294333] dark:text-[#a5b5a6]">
+        Made with <Heart size={13} className="mx-1 inline text-[#719b4e]" fill="currentColor" /> for a better community.
+      </footer>
     </main>
   );
 }

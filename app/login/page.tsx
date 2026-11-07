@@ -13,6 +13,8 @@ import {
   ArrowRight,
   Leaf,
   Loader2,
+  Users,
+  Sparkles,
 } from "lucide-react";
 
 import { authClient } from "@/lib/auth-client";
@@ -30,6 +32,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [githubLoading, setGithubLoading] = useState(false);
+
+  const isAuthenticating = loading || googleLoading || githubLoading;
 
   // Email and Password Login
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
@@ -90,12 +94,7 @@ export default function LoginPage() {
       });
 
       if (error) {
-        console.error("Google login error:", {
-          message: error.message,
-          status: error.status,
-          code: error.code,
-        });
-
+        console.error("Google login error:", error);
         setMessageType("error");
         setMessage(error.message || "Google login failed. Please try again.");
         setGoogleLoading(false);
@@ -122,12 +121,7 @@ export default function LoginPage() {
       });
 
       if (error) {
-        console.error("GitHub login error:", {
-          message: error.message,
-          status: error.status,
-          code: error.code,
-        });
-
+        console.error("GitHub login error:", error);
         setMessageType("error");
         setMessage(error.message || "GitHub login failed. Please try again.");
         setGithubLoading(false);
@@ -141,86 +135,152 @@ export default function LoginPage() {
     }
   };
 
-  const isAuthenticating = loading || googleLoading || githubLoading;
-
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#f7faf8] px-4 py-12">
-      <div className="grid w-full max-w-6xl overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-xl lg:grid-cols-2">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#faf9f2] px-4 py-8 sm:px-6 lg:py-12">
+
+      {/* Background Decorations */}
+      <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-[#d5ea83]/30 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-40 -right-32 h-[450px] w-[450px] rounded-full bg-[#719b4e]/10 blur-3xl" />
+
+      <div className="relative grid w-full max-w-6xl overflow-hidden rounded-[2rem] border border-[#e5e9dc] bg-white shadow-[0_25px_80px_rgba(23,76,56,0.10)] lg:min-h-[720px] lg:grid-cols-2">
 
         {/* Left Side */}
-        <section className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-green-700 via-green-600 to-emerald-500 p-12 text-white lg:flex">
-          <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
-          <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-emerald-300/20 blur-3xl" />
+        <section className="relative hidden flex-col justify-between overflow-hidden bg-[#174c38] p-10 text-white lg:flex xl:p-14">
 
-          <Link href="/" className="relative flex items-center gap-2 text-2xl font-bold">
-            <Heart size={30} />
-            TogetherWe
+          {/* Decorative Shapes */}
+          <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-[#d5ea83]/10 blur-2xl" />
+          <div className="absolute -bottom-32 -left-24 h-96 w-96 rounded-full bg-[#719b4e]/20 blur-3xl" />
+
+          <div className="absolute right-12 top-36 h-24 w-24 rounded-full border border-white/10" />
+          <div className="absolute right-28 top-52 h-10 w-10 rounded-full bg-[#d5ea83]/20" />
+
+          {/* Brand */}
+          <Link
+            href="/"
+            className="relative flex w-fit items-center gap-3"
+          >
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d5ea83] text-[#174c38]">
+              <Heart size={25} fill="currentColor" />
+            </div>
+
+            <span className="text-2xl font-bold tracking-tight">
+              TogetherWe<span className="text-[#d5ea83]">.</span>
+            </span>
           </Link>
 
-          <div className="relative max-w-md">
-            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/15">
+          {/* Main Content */}
+          <div className="relative my-12 max-w-lg">
+
+            <div className="mb-7 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-[#d5ea83]">
               <Leaf size={34} />
             </div>
 
-            <h1 className="text-4xl font-bold leading-tight">
-              Together, We Can Make a Difference.
-            </h1>
-
-            <p className="mt-5 leading-8 text-green-50">
-              Join a community of people who believe in kindness,
-              compassion, and creating positive change.
+            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-[#d5ea83]">
+              Together We Grow
             </p>
 
-            <div className="mt-9 flex items-center gap-3">
-              <div className="flex -space-x-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-green-600 bg-yellow-200 text-sm font-bold text-green-900">
-                  V
+            <h1 className="text-4xl font-bold leading-[1.2] xl:text-5xl">
+              Small Actions.
+              <br />
+              <span className="text-[#d5ea83]">
+                Big Changes.
+              </span>
+            </h1>
+
+            <p className="mt-6 max-w-md text-base leading-8 text-[#dce9dd]">
+              Join a community of people who believe in kindness,
+              compassion, and creating a better future together.
+            </p>
+
+            {/* Community Highlight */}
+            <div className="mt-10 rounded-2xl border border-white/10 bg-white/[0.07] p-5 backdrop-blur-sm">
+
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#d5ea83]/15 text-[#d5ea83]">
+                  <Users size={25} />
                 </div>
 
-                <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-green-600 bg-pink-200 text-sm font-bold text-pink-900">
-                  C
-                </div>
-
-                <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-green-600 bg-blue-200 text-sm font-bold text-blue-900">
-                  T
+                <div>
+                  <p className="font-semibold text-white">
+                    Stronger Communities
+                  </p>
+                  <p className="mt-1 text-sm text-[#c4d8c8]">
+                    Making a positive impact together.
+                  </p>
                 </div>
               </div>
 
-              <p className="text-sm text-green-50">
-                Making communities stronger together.
-              </p>
+              <div className="mt-5 flex items-center gap-3">
+                <div className="flex -space-x-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#174c38] bg-[#d5ea83] text-xs font-bold text-[#174c38]">
+                    V
+                  </div>
+
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#174c38] bg-[#e8b9a5] text-xs font-bold text-[#693c2d]">
+                    C
+                  </div>
+
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#174c38] bg-[#b9d7e8] text-xs font-bold text-[#23465c]">
+                    T
+                  </div>
+
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#174c38] bg-white text-xs font-bold text-[#174c38]">
+                    +
+                  </div>
+                </div>
+
+                <p className="text-xs text-[#dce9dd]">
+                  Every contribution matters.
+                </p>
+              </div>
+            </div>
+
+            {/* Decorative Text */}
+            <div className="mt-8 flex items-center gap-2 text-sm text-[#d5ea83]">
+              <Sparkles size={17} />
+              Be part of something meaningful.
             </div>
           </div>
 
-          <p className="relative text-sm text-green-100">
+          {/* Footer */}
+          <p className="relative text-sm text-[#c4d8c8]">
             © 2026 TogetherWe. All rights reserved.
           </p>
         </section>
 
         {/* Right Side */}
-        <section className="flex items-center justify-center px-6 py-10 sm:px-12 lg:px-14">
+        <section className="flex items-center justify-center px-6 py-10 sm:px-12 lg:px-14 xl:px-16">
+
           <div className="w-full max-w-md">
 
+            {/* Mobile Brand */}
             <Link
               href="/"
-              className="mb-10 flex items-center gap-2 text-xl font-bold text-green-700 lg:hidden"
+              className="mb-10 flex w-fit items-center gap-3 lg:hidden"
             >
-              <Heart size={25} />
-              TogetherWe
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#174c38] text-[#d5ea83]">
+                <Heart size={23} fill="currentColor" />
+              </div>
+
+              <span className="text-xl font-bold text-[#174c38]">
+                TogetherWe<span className="text-[#719b4e]">.</span>
+              </span>
             </Link>
 
+            {/* Heading */}
             <div>
-              <p className="text-sm font-semibold uppercase tracking-widest text-green-600">
+              <div className="inline-flex items-center gap-2 rounded-full bg-[#eef3df] px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[#456c36]">
+                <Leaf size={14} />
                 Welcome Back
-              </p>
+              </div>
 
-              <h2 className="mt-3 text-3xl font-bold text-gray-900">
+              <h2 className="mt-5 text-3xl font-bold tracking-tight text-[#173f2c] sm:text-4xl">
                 Login to your account
               </h2>
 
-              <p className="mt-3 text-sm leading-6 text-gray-500">
-                Welcome back! Please enter your details to continue
-                making a difference.
+              <p className="mt-4 text-sm leading-7 text-[#778478]">
+                Welcome back! Enter your details to continue making
+                a positive difference in your community.
               </p>
             </div>
 
@@ -231,15 +291,15 @@ export default function LoginPage() {
               <div>
                 <label
                   htmlFor="email"
-                  className="mb-2 block text-sm font-semibold text-gray-700"
+                  className="mb-2 block text-sm font-semibold text-[#294b37]"
                 >
                   Email Address
                 </label>
 
-                <div className="relative">
+                <div className="group relative">
                   <Mail
                     size={19}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-[#94a394] transition group-focus-within:text-[#174c38]"
                   />
 
                   <input
@@ -250,7 +310,7 @@ export default function LoginPage() {
                     placeholder="Enter your email"
                     autoComplete="email"
                     disabled={isAuthenticating}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 pl-12 pr-4 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100 disabled:opacity-60"
+                    className="w-full rounded-xl border border-[#e5e9dc] bg-[#fafbf7] py-3.5 pl-12 pr-4 text-sm text-[#173f2c] outline-none transition placeholder:text-[#a0aa9e] focus:border-[#719b4e] focus:bg-white focus:ring-4 focus:ring-[#d5ea83]/25 disabled:opacity-60"
                   />
                 </div>
               </div>
@@ -259,15 +319,15 @@ export default function LoginPage() {
               <div>
                 <label
                   htmlFor="password"
-                  className="mb-2 block text-sm font-semibold text-gray-700"
+                  className="mb-2 block text-sm font-semibold text-[#294b37]"
                 >
                   Password
                 </label>
 
-                <div className="relative">
+                <div className="group relative">
                   <Lock
                     size={19}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-[#94a394] transition group-focus-within:text-[#174c38]"
                   />
 
                   <input
@@ -278,13 +338,13 @@ export default function LoginPage() {
                     placeholder="Enter your password"
                     autoComplete="current-password"
                     disabled={isAuthenticating}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 pl-12 pr-12 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100 disabled:opacity-60"
+                    className="w-full rounded-xl border border-[#e5e9dc] bg-[#fafbf7] py-3.5 pl-12 pr-12 text-sm text-[#173f2c] outline-none transition placeholder:text-[#a0aa9e] focus:border-[#719b4e] focus:bg-white focus:ring-4 focus:ring-[#d5ea83]/25 disabled:opacity-60"
                   />
 
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-green-600"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#94a394] transition hover:text-[#174c38]"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? (
@@ -301,10 +361,10 @@ export default function LoginPage() {
                 <div
                   role="alert"
                   aria-live="polite"
-                  className={`rounded-xl px-4 py-3 text-sm ${
+                  className={`rounded-xl border px-4 py-3 text-sm ${
                     messageType === "success"
-                      ? "bg-green-50 text-green-700"
-                      : "bg-red-50 text-red-600"
+                      ? "border-[#d5e8c4] bg-[#f0f7e9] text-[#456c36]"
+                      : "border-red-100 bg-red-50 text-red-600"
                   }`}
                 >
                   {message}
@@ -315,30 +375,42 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isAuthenticating}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 py-3.5 font-semibold text-white shadow-lg shadow-green-600/20 transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="group flex w-full items-center justify-center gap-2 rounded-full bg-[#174c38] py-3.5 font-semibold text-white shadow-lg shadow-[#174c38]/15 transition hover:bg-[#246647] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading ? "Logging in..." : "Login"}
-                {!loading && <ArrowRight size={18} />}
+                {loading ? (
+                  <>
+                    <Loader2 size={19} className="animate-spin" />
+                    Logging in...
+                  </>
+                ) : (
+                  <>
+                    Login to Account
+                    <ArrowRight
+                      size={18}
+                      className="transition-transform group-hover:translate-x-1"
+                    />
+                  </>
+                )}
               </button>
             </form>
 
             {/* Divider */}
             <div className="my-7 flex items-center gap-4">
-              <div className="h-px flex-1 bg-gray-200" />
+              <div className="h-px flex-1 bg-[#e5e9dc]" />
 
-              <span className="text-xs font-medium uppercase tracking-wider text-gray-400">
+              <span className="text-xs font-medium uppercase tracking-wider text-[#98a397]">
                 Or continue with
               </span>
 
-              <div className="h-px flex-1 bg-gray-200" />
+              <div className="h-px flex-1 bg-[#e5e9dc]" />
             </div>
 
-            {/* Google Button */}
+            {/* Google Login */}
             <button
               type="button"
               onClick={handleGoogleLogin}
               disabled={isAuthenticating}
-              className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3 font-semibold text-gray-700 transition hover:border-green-400 hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex w-full items-center justify-center gap-3 rounded-full border border-[#e5e9dc] bg-white py-3 font-semibold text-[#294b37] transition hover:border-[#719b4e] hover:bg-[#f7faf2] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {googleLoading ? (
                 <>
@@ -378,12 +450,12 @@ export default function LoginPage() {
               )}
             </button>
 
-            {/* GitHub Button */}
+            {/* GitHub Login */}
             <button
               type="button"
               onClick={handleGitHubLogin}
               disabled={isAuthenticating}
-              className="mt-3 flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3 font-semibold text-gray-700 transition hover:border-green-400 hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-3 flex w-full items-center justify-center gap-3 rounded-full border border-[#e5e9dc] bg-white py-3 font-semibold text-[#294b37] transition hover:border-[#719b4e] hover:bg-[#f7faf2] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {githubLoading ? (
                 <>
@@ -406,22 +478,25 @@ export default function LoginPage() {
             </button>
 
             {/* Register Link */}
-            <p className="mt-8 text-center text-sm text-gray-500">
+            <p className="mt-8 text-center text-sm text-[#778478]">
               Don&apos;t have an account?{" "}
               <Link
                 href="/register"
-                className="font-bold text-green-700 transition hover:text-green-800"
+                className="font-bold text-[#174c38] transition hover:text-[#719b4e]"
               >
                 Create an account
               </Link>
             </p>
 
+            {/* Back to Home */}
             <Link
               href="/"
-              className="mt-6 block text-center text-sm font-medium text-gray-400 transition hover:text-green-700"
+              className="mt-6 flex items-center justify-center gap-2 text-sm font-medium text-[#98a397] transition hover:text-[#174c38]"
             >
-              ← Back to Home
+              <ArrowRight size={15} className="rotate-180" />
+              Back to Home
             </Link>
+
           </div>
         </section>
       </div>

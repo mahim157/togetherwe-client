@@ -1,30 +1,67 @@
 
 @import "tailwindcss";
 
+/* ========================================
+   TOGETHERWE — ORGANIC EDITORIAL THEME
+======================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a;
+  --background: #faf9f2;
+  --foreground: #173f2c;
+
+  --primary: #174c38;
+  --primary-hover: #246647;
+
+  --accent: #d5ea83;
+  --accent-soft: #eaf1df;
+
+  --cream: #f3f1e5;
+  --sage: #a8c5a0;
+  --lime: #d5ea83;
+
   --surface: #ffffff;
-  --surface-secondary: #f8fafc;
-  --border: #e2e8f0;
-  --muted: #64748b;
+  --surface-secondary: #f3f1e5;
+
+  --border: #e5e9dc;
+  --muted: #778478;
+
+  --success: #719b4e;
+  --danger: #dc5555;
+
+  --radius-card: 24px;
+  --radius-button: 999px;
+
+  --shadow-soft: 0 10px 35px rgba(23, 63, 44, 0.06);
+  --shadow-card: 0 18px 45px rgba(23, 63, 44, 0.10);
+}
+
+/* ========================================
+   GLOBAL RESET
+======================================== */
+
+* {
+  box-sizing: border-box;
 }
 
 html {
   scroll-behavior: smooth;
   color-scheme: light;
-}
-
-* {
-  box-sizing: border-box;
+  scroll-padding-top: 90px;
 }
 
 body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-  transition: background-color 0.25s ease, color 0.25s ease;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
 }
 
 a {
@@ -35,30 +72,65 @@ button {
   cursor: pointer;
 }
 
-::selection {
-  background: #a7f3d0;
-  color: #064e3b;
+button:disabled {
+  cursor: not-allowed;
 }
 
-/* Dark Theme Variables */
+img {
+  max-width: 100%;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--primary);
+}
+
+/* ========================================
+   DARK THEME VARIABLES
+======================================== */
+
 html[data-theme="dark"] {
   color-scheme: dark;
 
-  --background: #0f172a;
-  --foreground: #f1f5f9;
-  --surface: #1e293b;
-  --surface-secondary: #172033;
-  --border: #334155;
-  --muted: #94a3b8;
+  --background: #0d1c13;
+  --foreground: #f3f3e9;
+
+  --primary: #174c38;
+  --primary-hover: #246647;
+
+  --accent: #d5ea83;
+  --accent-soft: #203b2b;
+
+  --cream: #14271c;
+  --sage: #a8c5a0;
+  --lime: #d5ea83;
+
+  --surface: #14271c;
+  --surface-secondary: #192f21;
+
+  --border: #294333;
+  --muted: #a5b5a6;
+
+  --success: #a8c77c;
+  --danger: #f07878;
+
+  --shadow-soft: 0 10px 35px rgba(0, 0, 0, 0.18);
+  --shadow-card: 0 18px 45px rgba(0, 0, 0, 0.25);
 }
 
-/* Main Backgrounds */
+/* ========================================
+   DARK BODY
+======================================== */
+
 html[data-theme="dark"] body {
   background: var(--background);
   color: var(--foreground);
 }
 
-/* White and Slate Surfaces */
+/* ========================================
+   DARK MODE SURFACES
+======================================== */
+
 html[data-theme="dark"] .bg-white {
   background-color: var(--surface) !important;
 }
@@ -70,30 +142,36 @@ html[data-theme="dark"] .bg-gray-50 {
 
 html[data-theme="dark"] .bg-slate-100,
 html[data-theme="dark"] .bg-gray-100 {
-  background-color: #273449 !important;
+  background-color: #273b2d !important;
 }
 
-/* Text Colors */
+/* ========================================
+   DARK MODE TEXT
+======================================== */
+
 html[data-theme="dark"] .text-slate-900,
 html[data-theme="dark"] .text-gray-900 {
-  color: #f1f5f9 !important;
+  color: #f3f3e9 !important;
 }
 
 html[data-theme="dark"] .text-slate-800,
 html[data-theme="dark"] .text-slate-700,
 html[data-theme="dark"] .text-gray-800,
 html[data-theme="dark"] .text-gray-700 {
-  color: #e2e8f0 !important;
+  color: #e2e8df !important;
 }
 
 html[data-theme="dark"] .text-slate-600,
 html[data-theme="dark"] .text-slate-500,
 html[data-theme="dark"] .text-gray-600,
 html[data-theme="dark"] .text-gray-500 {
-  color: #94a3b8 !important;
+  color: #a5b5a6 !important;
 }
 
-/* Borders */
+/* ========================================
+   DARK MODE BORDERS
+======================================== */
+
 html[data-theme="dark"] .border-slate-200,
 html[data-theme="dark"] .border-slate-300,
 html[data-theme="dark"] .border-gray-200,
@@ -101,23 +179,133 @@ html[data-theme="dark"] .border-gray-300 {
   border-color: var(--border) !important;
 }
 
-/* Form Elements */
+/* ========================================
+   DARK MODE FORM ELEMENTS
+======================================== */
+
 html[data-theme="dark"] input,
 html[data-theme="dark"] textarea,
 html[data-theme="dark"] select {
-  background-color: #172033;
-  color: #f1f5f9;
-  border-color: #475569;
+  background-color: #172c1e;
+  color: #f3f3e9;
+  border-color: #385541;
 }
 
 html[data-theme="dark"] input::placeholder,
 html[data-theme="dark"] textarea::placeholder {
-  color: #94a3b8;
+  color: #91a493;
 }
 
-/* Smooth Theme Transition */
-html[data-theme="dark"] *,
-html[data-theme="light"] * {
-  transition-property: background-color, border-color, color;
-  transition-duration: 200ms;
+/* ========================================
+   CUSTOM DESIGN UTILITIES
+======================================== */
+
+.tw-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.tw-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 13px 25px;
+  border-radius: var(--radius-button);
+
+  background: var(--primary);
+  color: #ffffff;
+
+  font-weight: 700;
+
+  transition:
+    background-color 0.25s ease,
+    transform 0.25s ease;
+}
+
+.tw-button:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+}
+
+.tw-button-accent {
+  background: var(--accent);
+  color: var(--primary);
+}
+
+.tw-button-accent:hover {
+  background: #e5f3b5;
+}
+
+.tw-section-label {
+  color: var(--success);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* ========================================
+   IMAGE HOVER EFFECT
+======================================== */
+
+.tw-image {
+  overflow: hidden;
+  border-radius: var(--radius-card);
+}
+
+.tw-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+
+  transition: transform 0.6s ease;
+}
+
+.tw-image:hover img {
+  transform: scale(1.06);
+}
+
+/* ========================================
+   SCROLLBAR
+======================================== */
+
+::-webkit-scrollbar {
+  width: 9px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #a8c5a0;
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #719b4e;
+}
+
+/* ========================================
+   ACCESSIBILITY
+======================================== */
+
+:focus-visible {
+  outline: 3px solid #a8c5a0;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
