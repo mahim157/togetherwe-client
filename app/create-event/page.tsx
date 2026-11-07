@@ -4,6 +4,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+
 import {
   ArrowLeft,
   CalendarDays,
@@ -29,6 +30,29 @@ const categories = [
   "Other",
 ];
 
+function getLocalDate() {
+  const currentDate = new Date();
+
+  return [
+    currentDate.getFullYear(),
+    String(currentDate.getMonth() + 1).padStart(2, "0"),
+    String(currentDate.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+function isValidImageUrl(value: string) {
+  try {
+    const url = new URL(value);
+
+    return (
+      (url.protocol === "https:" || url.protocol === "http:") &&
+      Boolean(url.hostname)
+    );
+  } catch {
+    return false;
+  }
+}
+
 export default function CreateEventPage() {
   const router = useRouter();
 
@@ -46,27 +70,77 @@ export default function CreateEventPage() {
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(false);
 
-  // Calculate today's date.
   useEffect(() => {
-    const currentDate = new Date();
-
-    const formattedDate = [
-      currentDate.getFullYear(),
-      String(currentDate.getMonth() + 1).padStart(2, "0"),
-      String(currentDate.getDate()).padStart(2, "0"),
-    ].join("-");
-
-    setToday(formattedDate);
+    setToday(getLocalDate());
   }, []);
 
-  // Redirect users who are not logged in.
   useEffect(() => {
     if (!isPending && !session?.user) {
       router.replace("/login");
     }
   }, [isPending, session, router]);
 
-  // Submit event to Express backend.
+  function validateForm() {
+    const trimmedTitle = title.trim();
+    const trimmedDescription = description.trim();
+    const trimmedImage = image.trim();
+    const trimmedLocation = location.trim();
+
+    if (!trimmedTitle) {
+      return "Please enter an event title.";
+    }
+
+    if (trimmedTitle.length < 3) {
+      return "Event title must contain at least 3 characters.";
+    }
+
+    if (trimmedTitle.length > 100) {
+      return "Event title cannot exceed 100 characters.";
+    }
+
+    if (!trimmedDescription) {
+      return "Please enter an event description.";
+    }
+
+    if (trimmedDescription.length < 10) {
+      return "Description must contain at least 10 characters.";
+    }
+
+    if (trimmedDescription.length > 2000) {
+      return "Description cannot exceed 2000 characters.";
+    }
+
+    if (!categories.includes(category)) {
+      return "Please select a valid event category.";
+    }
+
+    if (!trimmedImage) {
+      return "Please enter an event image URL.";
+    }
+
+    if (!isValidImageUrl(trimmedImage)) {
+      return "Please enter a valid image URL starting with http:// or https://.";
+    }
+
+    if (!trimmedLocation) {
+      return "Please enter the event location.";
+    }
+
+    if (trimmedLocation.length < 3) {
+      return "Location must contain at least 3 characters.";
+    }
+
+    if (!date) {
+      return "Please select an event date.";
+    }
+
+    if (date <= today) {
+      return "Event date must be in the future. Past dates and today's date are not allowed.";
+    }
+
+    return "";
+  }
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
@@ -78,23 +152,37 @@ export default function CreateEventPage() {
       return;
     }
 
-    if (!date || date <= today) {
-      setMessage("Please select a future event date.");
+    const validationError = validateForm();
+
+    if (validationError) {
+      setMessage(validationError);
       return;
     }
 
     const eventData = {
-      title,
-      description,
+      title: title.trim(),
+      description: description.trim(),
       category,
-      image,
-      location,
+      image: image.trim(),
+      location: location.trim(),
       date,
     };
 
     try {
       setLoading(true);
 
+      // Step 1: Generate JWT token
+      const tokenResult = await authClient.token();
+
+      if (tokenResult.error || !tokenResult.data?.token) {
+        throw new Error(
+          tokenResult.error?.message || "Unable to generate JWT token."
+        );
+      }
+
+      const token = tokenResult.data.token;
+
+      // Step 2: Send event data with JWT
       const response = await fetch(
         "http://localhost:5000/api/events",
         {
@@ -102,6 +190,7 @@ export default function CreateEventPage() {
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(eventData),
         }
@@ -118,7 +207,7 @@ export default function CreateEventPage() {
       setSuccess(true);
       setMessage("Your event has been created successfully!");
 
-      // Redirect to Upcoming Events.
+      // Redirect to Upcoming Events
       setTimeout(() => {
         router.push("/events");
         router.refresh();
@@ -136,12 +225,15 @@ export default function CreateEventPage() {
     }
   }
 
-  // Show loading while checking the login session.
-  if (isPending || !session?.user) {
+  if (isPending || !session?.user || !today) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#f7faf8]">
         <div className="text-center">
-          <Loader2 className="mx-auto animate-spin text-green-600" size={36} />
+          <Loader2
+            className="mx-auto animate-spin text-green-600"
+            size={36}
+          />
+
           <p className="mt-4 text-gray-600">
             Checking your account...
           </p>
@@ -154,7 +246,6 @@ export default function CreateEventPage() {
     <main className="min-h-screen bg-[#f7faf8] px-5 py-12">
       <div className="mx-auto max-w-3xl">
 
-        {/* Back Button */}
         <Link
           href="/events"
           className="mb-7 inline-flex items-center gap-2 text-sm font-semibold text-gray-600 transition hover:text-green-700"
@@ -163,7 +254,6 @@ export default function CreateEventPage() {
           Back to Upcoming Events
         </Link>
 
-        {/* Page Heading */}
         <div className="mb-8">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-4 py-2 text-sm font-medium text-green-700">
             <Heart size={16} />
@@ -180,9 +270,7 @@ export default function CreateEventPage() {
           </p>
         </div>
 
-        {/* Form Card */}
         <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm md:p-9">
-
           <form onSubmit={handleSubmit} className="space-y-6">
 
             {/* Event Title */}
@@ -206,6 +294,10 @@ export default function CreateEventPage() {
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
               />
+
+              <p className="mt-2 text-xs text-gray-400">
+                {title.trim().length}/100 characters. Minimum 3 characters.
+              </p>
             </div>
 
             {/* Event Description */}
@@ -222,12 +314,17 @@ export default function CreateEventPage() {
                 id="description"
                 required
                 minLength={10}
+                maxLength={2000}
                 rows={5}
                 placeholder="Describe your event and explain how people can participate..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="w-full resize-y rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-sm leading-7 text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
               />
+
+              <p className="mt-2 text-xs text-gray-400">
+                {description.trim().length}/2000 characters. Minimum 10 characters.
+              </p>
             </div>
 
             {/* Category */}
@@ -242,6 +339,7 @@ export default function CreateEventPage() {
 
               <select
                 id="category"
+                required
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-sm text-gray-800 outline-none transition focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
@@ -275,7 +373,7 @@ export default function CreateEventPage() {
               />
 
               <p className="mt-2 text-xs text-gray-400">
-                Enter a publicly accessible image URL.
+                Enter a publicly accessible image URL starting with http:// or https://.
               </p>
             </div>
 
@@ -293,6 +391,8 @@ export default function CreateEventPage() {
                 id="location"
                 type="text"
                 required
+                minLength={3}
+                maxLength={150}
                 placeholder="Example: Savar, Dhaka"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
@@ -314,14 +414,23 @@ export default function CreateEventPage() {
                 id="date"
                 type="date"
                 required
-                min={today || undefined}
+                min={(() => {
+                  const tomorrow = new Date();
+                  tomorrow.setDate(tomorrow.getDate() + 1);
+
+                  return [
+                    tomorrow.getFullYear(),
+                    String(tomorrow.getMonth() + 1).padStart(2, "0"),
+                    String(tomorrow.getDate()).padStart(2, "0"),
+                  ].join("-");
+                })()}
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-sm text-gray-800 outline-none transition focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
               />
 
               <p className="mt-2 text-xs text-gray-400">
-                Please select a future date.
+                Today's date and past dates are not allowed.
               </p>
             </div>
 
@@ -347,6 +456,7 @@ export default function CreateEventPage() {
             {/* Success / Error Message */}
             {message && (
               <div
+                role="alert"
                 className={`flex items-start gap-3 rounded-xl p-4 text-sm ${
                   success
                     ? "border border-green-200 bg-green-50 text-green-700"
@@ -366,7 +476,7 @@ export default function CreateEventPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading || !today}
+              disabled={loading}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 px-6 py-4 font-semibold text-white shadow-lg shadow-green-600/20 transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? (

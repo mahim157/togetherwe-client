@@ -13,9 +13,12 @@ import {
   ArrowRight,
   Heart,
   SlidersHorizontal,
+  Sun,
+  Moon,
 } from "lucide-react";
 
 import { authClient } from "@/lib/auth-client";
+import { useTheme } from "../components/ThemeProvider";
 
 type Event = {
   _id: string;
@@ -50,8 +53,10 @@ function formatDate(date: string) {
 
 export default function EventsPage() {
   const router = useRouter();
-
   const { data: session, isPending } = authClient.useSession();
+  const { theme, toggleTheme } = useTheme();
+
+  const isDark = theme === "dark";
 
   const [events, setEvents] = useState<Event[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -62,7 +67,19 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Get today's date.
+  const pageBg = isDark ? "bg-slate-950" : "bg-[#f7faf8]";
+  const mainText = isDark ? "text-white" : "text-gray-900";
+  const mutedText = isDark ? "text-slate-400" : "text-gray-500";
+
+  const cardStyle = isDark
+    ? "border-slate-700 bg-slate-900"
+    : "border-gray-100 bg-white";
+
+  const inputStyle = isDark
+    ? "border-slate-700 bg-slate-950 text-slate-100 placeholder:text-slate-500 focus:border-emerald-500 focus:bg-slate-900"
+    : "border-gray-200 bg-gray-50 text-gray-700 placeholder:text-gray-400 focus:border-green-500 focus:bg-white";
+
+  // Today's date
   useEffect(() => {
     const currentDate = new Date();
 
@@ -75,7 +92,7 @@ export default function EventsPage() {
     setToday(formattedToday);
   }, []);
 
-  // Fetch events from MongoDB through Express API.
+  // Fetch events
   useEffect(() => {
     async function fetchEvents() {
       try {
@@ -103,6 +120,7 @@ export default function EventsPage() {
         setEvents(result.events);
       } catch (err) {
         console.error("Fetch events error:", err);
+
         setError(
           "Unable to load events. Please make sure the server is running."
         );
@@ -114,7 +132,7 @@ export default function EventsPage() {
     fetchEvents();
   }, []);
 
-  // Navigate to Create Event page.
+  // Create event navigation
   const handleCreateEvent = () => {
     if (isPending) return;
 
@@ -125,12 +143,12 @@ export default function EventsPage() {
     }
   };
 
-  // Show upcoming events only.
+  // Upcoming events only
   const upcomingEvents = today
     ? events.filter((event) => event.date >= today)
     : [];
 
-  // Search and category filtering.
+  // Search and category filtering
   const filteredEvents = upcomingEvents.filter((event) => {
     const search = searchTerm.toLowerCase();
 
@@ -151,25 +169,58 @@ export default function EventsPage() {
   ).size;
 
   return (
-    <main className="min-h-screen bg-[#f7faf8] text-gray-900">
-      {/* Page Header */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-emerald-50 px-5 py-20 md:py-24">
-        <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-green-100/60 blur-3xl" />
-        <div className="absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-emerald-100/50 blur-3xl" />
+    <main className={`min-h-screen transition-colors duration-300 ${pageBg} ${mainText}`}>
+
+      {/* PAGE HEADER */}
+      <section
+        className={`relative overflow-hidden px-5 py-20 transition-colors duration-300 md:py-24 ${
+          isDark
+            ? "bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950"
+            : "bg-gradient-to-br from-green-50 via-white to-emerald-50"
+        }`}
+      >
+        <div className={`absolute -right-20 -top-20 h-72 w-72 rounded-full blur-3xl ${isDark ? "bg-emerald-500/10" : "bg-green-100/60"}`} />
+        <div className={`absolute -bottom-24 -left-20 h-72 w-72 rounded-full blur-3xl ${isDark ? "bg-emerald-500/10" : "bg-emerald-100/50"}`} />
 
         <div className="relative mx-auto max-w-7xl">
+
+          {/* THEME TOGGLE */}
+          <div className="mb-8 flex justify-end">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+              className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                isDark
+                  ? "border-slate-700 bg-slate-900 text-yellow-300 hover:bg-slate-800"
+                  : "border-gray-200 bg-white text-slate-700 hover:bg-emerald-50"
+              }`}
+            >
+              {isDark ? <Sun size={18} /> : <Moon size={18} />}
+              {isDark ? "Light Mode" : "Dark Mode"}
+            </button>
+          </div>
+
           <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-green-200 bg-white px-4 py-2 text-sm font-medium text-green-700 shadow-sm">
+            <span
+              className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium shadow-sm ${
+                isDark
+                  ? "border-emerald-800 bg-slate-900 text-emerald-300"
+                  : "border-green-200 bg-white text-green-700"
+              }`}
+            >
               <Heart size={16} />
               Make a Difference Together
             </span>
 
-            <h1 className="mt-6 text-4xl font-bold leading-tight tracking-tight text-gray-900 md:text-6xl">
+            <h1 className={`mt-6 text-4xl font-bold leading-tight tracking-tight md:text-6xl ${mainText}`}>
               Upcoming Community{" "}
-              <span className="text-green-600">Events</span>
+              <span className={isDark ? "text-emerald-400" : "text-green-600"}>
+                Events
+              </span>
             </h1>
 
-            <p className="mt-5 max-w-2xl text-base leading-8 text-gray-600 md:text-lg">
+            <p className={`mt-5 max-w-2xl text-base leading-8 md:text-lg ${mutedText}`}>
               Discover meaningful community activities, connect with
               volunteers, and take part in creating positive change.
               Every small contribution matters.
@@ -187,77 +238,85 @@ export default function EventsPage() {
               <button
                 onClick={handleCreateEvent}
                 disabled={isPending}
-                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3 font-semibold text-gray-700 transition hover:border-green-500 hover:text-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                className={`inline-flex items-center gap-2 rounded-xl border px-6 py-3 font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                  isDark
+                    ? "border-slate-700 bg-slate-900 text-slate-200 hover:border-emerald-500 hover:text-emerald-400"
+                    : "border-gray-200 bg-white text-gray-700 hover:border-green-500 hover:text-green-700"
+                }`}
               >
                 {isPending ? "Checking Login..." : "Create an Event"}
               </button>
             </div>
           </div>
 
-          {/* Event Statistics */}
+          {/* STATISTICS */}
           <div className="mt-14 grid max-w-2xl grid-cols-2 gap-4 sm:grid-cols-3">
-            <div className="rounded-2xl border border-white bg-white/80 p-5 shadow-sm backdrop-blur">
-              <h3 className="text-3xl font-bold text-green-600">
-                {loading ? "..." : upcomingEvents.length}
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Upcoming Events
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-white bg-white/80 p-5 shadow-sm backdrop-blur">
-              <h3 className="text-3xl font-bold text-green-600">
-                {loading ? "..." : totalLocations}
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Locations
-              </p>
-            </div>
-
-            <div className="col-span-2 rounded-2xl border border-white bg-white/80 p-5 shadow-sm backdrop-blur sm:col-span-1">
-              <h3 className="text-3xl font-bold text-green-600">
-                100%
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Community Spirit
-              </p>
-            </div>
+            {[
+              {
+                value: loading ? "..." : upcomingEvents.length,
+                label: "Upcoming Events",
+              },
+              {
+                value: loading ? "..." : totalLocations,
+                label: "Locations",
+              },
+              {
+                value: "100%",
+                label: "Community Spirit",
+              },
+            ].map((stat, index) => (
+              <div
+                key={stat.label}
+                className={`rounded-2xl border p-5 shadow-sm backdrop-blur ${
+                  isDark
+                    ? "border-slate-700 bg-slate-900/80"
+                    : "border-white bg-white/80"
+                } ${index === 2 ? "col-span-2 sm:col-span-1" : ""}`}
+              >
+                <h3 className={`text-3xl font-bold ${isDark ? "text-emerald-400" : "text-green-600"}`}>
+                  {stat.value}
+                </h3>
+                <p className={`mt-1 text-sm ${mutedText}`}>
+                  {stat.label}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Events Section */}
+      {/* EVENTS SECTION */}
       <section
         id="events-list"
         className="mx-auto max-w-7xl px-5 py-16 md:py-20"
       >
         <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-widest text-green-600">
+            <p className="text-sm font-semibold uppercase tracking-widest text-green-500">
               Find Your Opportunity
             </p>
 
-            <h2 className="mt-3 text-3xl font-bold text-gray-900 md:text-4xl">
+            <h2 className={`mt-3 text-3xl font-bold md:text-4xl ${mainText}`}>
               Explore Events
             </h2>
 
-            <p className="mt-3 max-w-xl text-gray-500">
+            <p className={`mt-3 max-w-xl ${mutedText}`}>
               Find an event that matches your interests and become
               part of something meaningful.
             </p>
           </div>
 
-          <p className="text-sm font-medium text-gray-500">
+          <p className={`text-sm font-medium ${mutedText}`}>
             Showing{" "}
-            <span className="font-bold text-green-600">
+            <span className="font-bold text-green-500">
               {filteredEvents.length}
             </span>{" "}
             of {upcomingEvents.length} events
           </p>
         </div>
 
-        {/* Search and Filter */}
-        <div className="mt-9 grid gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm md:grid-cols-[1fr_260px] md:p-5">
+        {/* SEARCH AND FILTER */}
+        <div className={`mt-9 grid gap-4 rounded-2xl border p-4 shadow-sm md:grid-cols-[1fr_260px] md:p-5 ${cardStyle}`}>
           <div className="relative">
             <Search
               size={20}
@@ -269,7 +328,7 @@ export default function EventsPage() {
               placeholder="Search by event name, location..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 pl-12 pr-4 text-sm text-gray-700 outline-none transition placeholder:text-gray-400 focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
+              className={`w-full rounded-xl border py-3.5 pl-12 pr-4 text-sm outline-none transition focus:ring-2 focus:ring-green-500/20 ${inputStyle}`}
             />
           </div>
 
@@ -282,7 +341,7 @@ export default function EventsPage() {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full appearance-none rounded-xl border border-gray-200 bg-gray-50 py-3.5 pl-11 pr-4 text-sm text-gray-700 outline-none transition focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
+              className={`w-full appearance-none rounded-xl border py-3.5 pl-11 pr-4 text-sm outline-none transition focus:ring-2 focus:ring-green-500/20 ${inputStyle}`}
             >
               {categories.map((category) => (
                 <option key={category} value={category}>
@@ -293,35 +352,40 @@ export default function EventsPage() {
           </div>
         </div>
 
-        {/* Loading State */}
+        {/* LOADING STATE */}
         {loading && (
-          <div className="mt-12 text-center text-gray-500">
-            Loading upcoming events...
+          <div className={`mt-12 text-center ${mutedText}`}>
+            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-emerald-100 border-t-emerald-600" />
+            <p className="mt-4">Loading upcoming events...</p>
           </div>
         )}
 
-        {/* Error State */}
+        {/* ERROR STATE */}
         {!loading && error && (
-          <div className="mt-10 rounded-2xl border border-red-200 bg-red-50 px-5 py-12 text-center">
-            <p className="text-red-600">{error}</p>
+          <div className={`mt-10 rounded-2xl border px-5 py-12 text-center ${
+            isDark
+              ? "border-red-900 bg-red-950/30"
+              : "border-red-200 bg-red-50"
+          }`}>
+            <p className="text-red-500">{error}</p>
 
             <button
               onClick={() => window.location.reload()}
-              className="mt-5 rounded-xl bg-green-600 px-6 py-3 font-semibold text-white hover:bg-green-700"
+              className="mt-5 rounded-xl bg-green-600 px-6 py-3 font-semibold text-white transition hover:bg-green-700"
             >
               Try Again
             </button>
           </div>
         )}
 
-        {/* Event Cards */}
+        {/* EVENT CARDS */}
         {!loading && !error && (
           <>
             <div className="mt-9 grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
               {filteredEvents.map((event) => (
                 <article
                   key={event._id}
-                  className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+                  className={`group overflow-hidden rounded-2xl border shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-500 hover:shadow-xl ${cardStyle}`}
                 >
                   <div className="relative h-56 overflow-hidden">
                     <img
@@ -336,36 +400,29 @@ export default function EventsPage() {
                   </div>
 
                   <div className="p-5">
-                    <h3 className="text-xl font-bold text-gray-900 transition group-hover:text-green-700">
+                    <h3 className={`text-xl font-bold transition group-hover:text-emerald-500 ${mainText}`}>
                       {event.title}
                     </h3>
 
-                    <p className="mt-3 min-h-[48px] text-sm leading-6 text-gray-500">
+                    <p className={`mt-3 min-h-[48px] text-sm leading-6 ${mutedText}`}>
                       {event.description}
                     </p>
 
-                    <div className="mt-5 space-y-3 border-t border-gray-100 pt-4">
-                      <div className="flex items-center gap-3 text-sm text-gray-600">
-                        <CalendarDays
-                          size={17}
-                          className="shrink-0 text-green-600"
-                        />
+                    <div className={`mt-5 space-y-3 border-t pt-4 ${
+                      isDark ? "border-slate-700" : "border-gray-100"
+                    }`}>
+                      <div className={`flex items-center gap-3 text-sm ${mutedText}`}>
+                        <CalendarDays size={17} className="shrink-0 text-green-500" />
                         <span>{formatDate(event.date)}</span>
                       </div>
 
-                      <div className="flex items-center gap-3 text-sm text-gray-600">
-                        <MapPin
-                          size={17}
-                          className="shrink-0 text-green-600"
-                        />
+                      <div className={`flex items-center gap-3 text-sm ${mutedText}`}>
+                        <MapPin size={17} className="shrink-0 text-green-500" />
                         <span>{event.location}</span>
                       </div>
 
-                      <div className="flex items-center gap-3 text-sm text-gray-600">
-                        <Users
-                          size={17}
-                          className="shrink-0 text-green-600"
-                        />
+                      <div className={`flex items-center gap-3 text-sm ${mutedText}`}>
+                        <Users size={17} className="shrink-0 text-green-500" />
                         <span>
                           {event.volunteers ?? 0} volunteers interested
                         </span>
@@ -374,7 +431,11 @@ export default function EventsPage() {
 
                     <Link
                       href={`/events/${event._id}`}
-                      className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-green-600 py-3 font-semibold text-green-700 transition hover:bg-green-600 hover:text-white"
+                      className={`mt-6 flex w-full items-center justify-center gap-2 rounded-xl border py-3 font-semibold transition ${
+                        isDark
+                          ? "border-emerald-700 text-emerald-400 hover:bg-emerald-600 hover:text-white"
+                          : "border-green-600 text-green-700 hover:bg-green-600 hover:text-white"
+                      }`}
                     >
                       View Details
                       <ArrowRight size={17} />
@@ -384,18 +445,22 @@ export default function EventsPage() {
               ))}
             </div>
 
-            {/* Empty State */}
+            {/* EMPTY STATE */}
             {today && filteredEvents.length === 0 && (
-              <div className="mt-10 rounded-2xl border border-dashed border-gray-300 bg-white px-5 py-16 text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
-                  <Search size={28} className="text-green-600" />
+              <div className={`mt-10 rounded-2xl border border-dashed px-5 py-16 text-center ${
+                isDark
+                  ? "border-slate-700 bg-slate-900"
+                  : "border-gray-300 bg-white"
+              }`}>
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10">
+                  <Search size={28} className="text-green-500" />
                 </div>
 
-                <h3 className="mt-5 text-xl font-bold text-gray-900">
+                <h3 className={`mt-5 text-xl font-bold ${mainText}`}>
                   No Events Found
                 </h3>
 
-                <p className="mt-2 text-sm text-gray-500">
+                <p className={`mt-2 text-sm ${mutedText}`}>
                   Try another search term or select a different category.
                 </p>
 
@@ -414,7 +479,7 @@ export default function EventsPage() {
         )}
       </section>
 
-      {/* Bottom CTA */}
+      {/* BOTTOM CTA */}
       <section className="px-5 pb-20">
         <div className="mx-auto max-w-7xl overflow-hidden rounded-3xl bg-gradient-to-r from-green-700 to-emerald-600 px-6 py-12 text-center text-white md:px-12 md:py-16">
           <h2 className="text-3xl font-bold md:text-4xl">

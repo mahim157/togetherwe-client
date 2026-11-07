@@ -16,6 +16,8 @@ import {
   Loader2,
 } from "lucide-react";
 
+import { authClient } from "@/lib/auth-client";
+
 type Event = {
   _id: string;
   title: string;
@@ -76,6 +78,7 @@ export default function EventDetailsClient({ id }: { id: string }) {
     fetchEvent();
   }, [id]);
 
+  // Join Event using JWT authentication
   async function handleJoin() {
     if (!event || joining || alreadyJoined) return;
 
@@ -84,11 +87,26 @@ export default function EventDetailsClient({ id }: { id: string }) {
       setJoinMessage("");
       setJoinError("");
 
+      // Generate JWT token
+      const tokenResult = await authClient.token();
+
+      if (tokenResult.error || !tokenResult.data?.token) {
+        throw new Error(
+          "Could not generate JWT token. Please login again."
+        );
+      }
+
+      const token = tokenResult.data.token;
+
+      // Send JWT token to the protected backend API
       const response = await fetch(
         `http://localhost:5000/api/events/${id}/join`,
         {
           method: "POST",
           credentials: "include",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -157,7 +175,9 @@ export default function EventDetailsClient({ id }: { id: string }) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50">
         <Loader2 className="h-10 w-10 animate-spin text-green-600" />
-        <p className="mt-4 text-gray-600">Loading event details...</p>
+        <p className="mt-4 text-gray-600">
+          Loading event details...
+        </p>
       </div>
     );
   }
@@ -279,7 +299,9 @@ export default function EventDetailsClient({ id }: { id: string }) {
                   <p className="font-semibold text-gray-900">
                     {event.creatorName || "Community Member"}
                   </p>
-                  <p className="text-sm text-gray-500">Event Organizer</p>
+                  <p className="text-sm text-gray-500">
+                    Event Organizer
+                  </p>
                 </div>
               </div>
 
@@ -291,25 +313,42 @@ export default function EventDetailsClient({ id }: { id: string }) {
 
               <div className="mt-4 space-y-4 text-sm">
                 <div className="flex items-start gap-3">
-                  <CalendarDays size={19} className="shrink-0 text-green-600" />
+                  <CalendarDays
+                    size={19}
+                    className="shrink-0 text-green-600"
+                  />
                   <div>
                     <p className="font-medium text-gray-900">Date</p>
-                    <p className="mt-1 text-gray-600">{formattedDate}</p>
+                    <p className="mt-1 text-gray-600">
+                      {formattedDate}
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <MapPin size={19} className="shrink-0 text-green-600" />
+                  <MapPin
+                    size={19}
+                    className="shrink-0 text-green-600"
+                  />
                   <div>
-                    <p className="font-medium text-gray-900">Location</p>
-                    <p className="mt-1 text-gray-600">{event.location}</p>
+                    <p className="font-medium text-gray-900">
+                      Location
+                    </p>
+                    <p className="mt-1 text-gray-600">
+                      {event.location}
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <Users size={19} className="shrink-0 text-green-600" />
+                  <Users
+                    size={19}
+                    className="shrink-0 text-green-600"
+                  />
                   <div>
-                    <p className="font-medium text-gray-900">Volunteers</p>
+                    <p className="font-medium text-gray-900">
+                      Volunteers
+                    </p>
                     <p className="mt-1 text-gray-600">
                       {event.volunteers} people joined
                     </p>
