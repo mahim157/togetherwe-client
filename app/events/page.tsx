@@ -23,6 +23,7 @@ import {
   X,
 } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { useTheme } from "../components/ThemeProvider";
 
@@ -276,18 +277,19 @@ export default function EventsPage() {
                   />
                 </a>
 
-                <button
+                <Button
+                  type="button"
                   onClick={handleCreateEvent}
                   disabled={isPending}
-                  className={`inline-flex items-center gap-2 rounded-full border px-7 py-4 text-sm font-bold transition hover:-translate-y-1 disabled:opacity-50 ${
+                  className={`inline-flex h-auto items-center gap-2 rounded-full border px-7 py-4 text-sm font-bold transition hover:-translate-y-1 disabled:opacity-50 ${
                     isDark
-                      ? "border-white/20 text-white hover:bg-white/10"
-                      : "border-[#aab99e] text-[#244d38] hover:bg-white/70"
+                      ? "border-white/20 bg-transparent text-white hover:bg-white/10"
+                      : "border-[#aab99e] bg-transparent text-[#244d38] hover:bg-white/70"
                   }`}
                 >
                   <Plus size={18} />
                   {isPending ? "Checking..." : "Create an Event"}
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -649,14 +651,15 @@ export default function EventsPage() {
               hundreds of people.
             </p>
 
-            <button
+            <Button
+              type="button"
               onClick={handleCreateEvent}
               disabled={isPending}
-              className="mt-9 inline-flex items-center gap-3 rounded-full bg-[#d9ed9c] px-8 py-4 text-sm font-black text-[#244d38] shadow-lg transition hover:-translate-y-1 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-9 inline-flex h-auto items-center gap-3 rounded-full bg-[#d9ed9c] px-8 py-4 text-sm font-black text-[#244d38] shadow-lg transition hover:-translate-y-1 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               Create an Event
               <ArrowRight size={18} />
-            </button>
+            </Button>
           </div>
         </div>
       </section>

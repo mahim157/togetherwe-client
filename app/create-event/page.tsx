@@ -90,7 +90,7 @@ export default function CreateEventPage() {
 
   useEffect(() => {
     if (!isPending && !session?.user) {
-      router.replace("/login");
+      router.replace("/login?redirect=%2Fcreate-event");
     }
   }, [isPending, session, router]);
 
@@ -162,7 +162,7 @@ export default function CreateEventPage() {
     setSuccess(false);
 
     if (!session?.user) {
-      router.push("/login");
+      router.push("/login?redirect=%2Fcreate-event");
       return;
     }
 
