@@ -11,6 +11,7 @@ import {
   MapPin,
   Users,
   ArrowRight,
+  ArrowLeft,
   Heart,
   SlidersHorizontal,
   Sun,
@@ -183,8 +184,10 @@ export default function EventsPage() {
         <div className="pointer-events-none absolute -bottom-40 -left-20 h-[350px] w-[350px] rounded-full bg-[#91a77d]/10 blur-3xl" />
 
         <div className="relative mx-auto max-w-7xl px-5 pb-20 pt-8 md:px-8 md:pb-28 md:pt-12">
+
           {/* TOP BAR */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+
             <Link
               href="/"
               className={`flex items-center gap-2 text-xl font-black tracking-tight ${
@@ -197,23 +200,41 @@ export default function EventsPage() {
               TogetherWe
             </Link>
 
-            <button
-              type="button"
-              onClick={toggleTheme}
-              aria-label={
-                isDark ? "Switch to light mode" : "Switch to dark mode"
-              }
-              className={`flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition ${
-                isDark
-                  ? "border-white/15 bg-white/5 text-yellow-300 hover:bg-white/10"
-                  : "border-[#d6ddcc] bg-white/70 text-[#244d38] hover:bg-white"
-              }`}
-            >
-              {isDark ? <Sun size={17} /> : <Moon size={17} />}
-              <span className="hidden sm:inline">
-                {isDark ? "Light Mode" : "Dark Mode"}
-              </span>
-            </button>
+            <div className="flex items-center gap-2 sm:gap-3">
+
+              {/* BACK TO HOME BUTTON */}
+              <Link
+                href="/"
+                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-bold transition hover:-translate-y-0.5 ${
+                  isDark
+                    ? "border-white/15 bg-white/5 text-white hover:border-[#a8d66d] hover:bg-white/10"
+                    : "border-[#cbd7c1] bg-white/80 text-[#244d38] hover:border-[#779956] hover:bg-white"
+                }`}
+              >
+                <ArrowLeft size={17} />
+                <span>Back to Home</span>
+              </Link>
+
+              {/* THEME TOGGLE */}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                aria-label={
+                  isDark ? "Switch to light mode" : "Switch to dark mode"
+                }
+                className={`flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition ${
+                  isDark
+                    ? "border-white/15 bg-white/5 text-yellow-300 hover:bg-white/10"
+                    : "border-[#d6ddcc] bg-white/70 text-[#244d38] hover:bg-white"
+                }`}
+              >
+                {isDark ? <Sun size={17} /> : <Moon size={17} />}
+                <span className="hidden sm:inline">
+                  {isDark ? "Light Mode" : "Dark Mode"}
+                </span>
+              </button>
+
+            </div>
           </div>
 
           {/* HERO CONTENT */}

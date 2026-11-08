@@ -23,10 +23,8 @@ import {
   Sparkles,
   MoveUpRight,
   CheckCircle2,
-  Clock3,
   Sprout,
   Flower2,
-  Earth,
   TreePine,
 } from "lucide-react";
 
@@ -92,7 +90,7 @@ const gallery = [
   {
     id: "education",
     image:
-      "https://lamdong.gov.vn/sites/tdkt/tintuc/tinhoatdong/SiteAssets/SitePages/t5_01_a1-dcyt_20230130192825-1675148351823.jpg",
+      "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1200&auto=format&fit=crop",
     title: "Learning Together",
     category: "Education",
     number: "02",
@@ -151,7 +149,6 @@ export default function Home() {
   const { data: session, isPending } = authClient.useSession();
   const user = session?.user;
 
-  // Fetch recent events
   useEffect(() => {
     const controller = new AbortController();
 
@@ -205,7 +202,6 @@ export default function Home() {
     return () => controller.abort();
   }, []);
 
-  // Logout
   const handleLogout = async () => {
     if (logoutLoading) return;
 
@@ -235,7 +231,6 @@ export default function Home() {
     }
   };
 
-  // Newsletter preview
   const handleNewsletterSubmit = (
     e: FormEvent<HTMLFormElement>
   ) => {
@@ -305,7 +300,6 @@ export default function Home() {
           : "bg-[#faf9f2] text-[#173f2c]"
       }`}
     >
-      {/* NAVBAR */}
       <nav
         className={`sticky top-0 z-50 border-b backdrop-blur-xl ${
           isDark
@@ -334,38 +328,24 @@ export default function Home() {
             </div>
           </Link>
 
-          {/* DESKTOP NAVIGATION */}
           <div className="hidden items-center gap-8 text-sm font-semibold md:flex">
-            <Link
-              href="/"
-              className="text-[#739c4c]"
-            >
+            <Link href="/" className="text-[#739c4c]">
               Home
             </Link>
 
-            <a
-              href="#features"
-              className={`transition ${navLink}`}
-            >
+            <a href="#features" className={`transition ${navLink}`}>
               About Us
             </a>
 
-            <Link
-              href="/events"
-              className={`transition ${navLink}`}
-            >
+            <Link href="/events" className={`transition ${navLink}`}>
               Explore Events
             </Link>
 
-            <a
-              href="#gallery"
-              className={`transition ${navLink}`}
-            >
+            <a href="#gallery" className={`transition ${navLink}`}>
               Gallery
             </a>
           </div>
 
-          {/* DESKTOP AUTH */}
           <div className="hidden items-center gap-3 md:flex">
             <ThemeToggleButton />
 
@@ -447,6 +427,7 @@ export default function Home() {
                           { href: "/create-event", label: "Create Event" },
                           { href: "/manage-events", label: "Manage Events" },
                           { href: "/joined-events", label: "Joined Events" },
+                          { href: "/saved-events", label: "Saved Events" },
                         ].map((item) => (
                           <Link
                             key={item.href}
@@ -491,7 +472,7 @@ export default function Home() {
                 </Link>
 
                 <Link
-                  href="/register"
+                  href="/login"
                   className="rounded-full bg-[#174c38] px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#246647]"
                 >
                   Get Started <ArrowUpRight className="ml-1 inline" size={16} />
@@ -500,7 +481,6 @@ export default function Home() {
             )}
           </div>
 
-          {/* MOBILE MENU BUTTON */}
           <button
             type="button"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -517,7 +497,6 @@ export default function Home() {
           </button>
         </div>
 
-        {/* MOBILE NAVIGATION */}
         {isMenuOpen && (
           <div
             id="mobile-navigation"
@@ -603,6 +582,7 @@ export default function Home() {
                     { href: "/create-event", label: "Create Event" },
                     { href: "/manage-events", label: "Manage Events" },
                     { href: "/joined-events", label: "Joined Events" },
+                    { href: "/saved-events", label: "Saved Events" },
                   ].map((item) => (
                     <Link
                       key={item.href}
@@ -661,7 +641,6 @@ export default function Home() {
         <div className="pointer-events-none absolute -bottom-48 -left-40 h-[450px] w-[450px] rounded-full bg-[#dce8c5]/30 blur-3xl" />
 
         <div className="relative mx-auto grid max-w-7xl items-center gap-16 px-5 py-20 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-28">
-          {/* HERO CONTENT */}
           <div>
             <div className={`mb-7 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wider ${
               isDark
@@ -710,7 +689,6 @@ export default function Home() {
               </Link>
             </div>
 
-            {/* COMMUNITY TRUST */}
             <div className={`mt-12 flex flex-wrap items-center gap-5 border-t pt-8 ${
               isDark ? "border-[#263d2c]" : "border-[#dce4d5]"
             }`}>
@@ -744,7 +722,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* HERO IMAGE */}
           <div className="relative mx-auto w-full max-w-xl lg:ml-auto">
             <div className="absolute -right-5 -top-5 h-32 w-32 rounded-full border border-[#8eaa70]/50" />
 
@@ -773,7 +750,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* FLOATING CARD */}
             <div className={`absolute -bottom-7 -left-3 rounded-2xl border p-4 shadow-xl sm:-left-8 sm:p-5 ${
               isDark
                 ? "border-[#385541] bg-[#14271c]"
@@ -798,7 +774,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* STATS SECTION */}
+      {/* STATS */}
       <section className={`border-y ${
         isDark
           ? "border-[#294333] bg-[#14271c]"
@@ -965,7 +941,6 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* LOADING */}
           {eventsLoading && (
             <div
               className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3"
@@ -1001,7 +976,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* ERROR */}
           {!eventsLoading && eventsError && (
             <div className={`rounded-2xl border p-8 text-center ${
               isDark
@@ -1018,7 +992,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* EMPTY */}
           {!eventsLoading && !eventsError && events.length === 0 && (
             <div className={`rounded-[2rem] border border-dashed p-14 text-center ${
               isDark
@@ -1047,7 +1020,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* EVENT CARDS */}
           {!eventsLoading && !eventsError && events.length > 0 && (
             <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
               {events.map((event) => (
@@ -1123,148 +1095,124 @@ export default function Home() {
         </div>
       </section>
 
- 
-{/* ========================================
-    ORGANIC EDITORIAL GALLERY
-======================================== */}
-
-<section
-  id="gallery"
-  className={`relative overflow-hidden px-5 py-24 lg:px-8 lg:py-32 ${
-    isDark ? "bg-[#0d1c13]" : "bg-[#faf9f2]"
-  }`}
->
-  <div className="mx-auto max-w-7xl">
-
-    {/* HEADER */}
-    <div className="mb-14 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-
-      <div>
-        <p className="mb-5 flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-[#719b4e]">
-          <Leaf size={16} />
-          Our Community
-        </p>
-
-        <h2
-          className={`max-w-2xl text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl ${
-            isDark ? "text-[#f3f3e9]" : "text-[#173f2c]"
-          }`}
-        >
-          Moments That
-          <span className="ml-3 font-serif font-normal italic text-[#719b4e]">
-            Matter.
-          </span>
-        </h2>
-      </div>
-
-      <div className="max-w-md">
-        <p
-          className={`text-sm leading-8 sm:text-base ${
-            isDark ? "text-[#a5b5a6]" : "text-[#778478]"
-          }`}
-        >
-          Real people. Real stories. Every helping hand creates
-          a little more hope and brings our community closer together.
-        </p>
-
-        <div className="mt-5 flex items-center gap-2 text-sm font-bold text-[#719b4e]">
-          <span className="h-px w-10 bg-[#719b4e]" />
-          Stories of positive change
-        </div>
-      </div>
-
-    </div>
-
-    {/* GALLERY GRID */}
-    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-12">
-
-      {gallery.map((item, index) => (
-        <article
-          key={item.id}
-          className={`group relative isolate overflow-hidden rounded-[1.8rem] ${
-            index === 0
-              ? "min-h-[430px] sm:col-span-2 md:col-span-7 md:row-span-2 md:min-h-[590px]"
-              : index === 1 || index === 2
-                ? "min-h-[280px] sm:col-span-1 md:col-span-5"
-                : "min-h-[280px] sm:col-span-1 md:col-span-6"
-          }`}
-        >
-
-          {/* IMAGE */}
-          <img
-            src={item.image}
-            alt={item.title}
-            loading="lazy"
-            className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-          />
-
-          {/* IMAGE OVERLAY */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#102b1b]/90 via-[#102b1b]/10 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-100" />
-
-          {/* IMAGE NUMBER */}
-          <div className="absolute right-5 top-5 flex h-10 w-10 items-center justify-center rounded-full border border-white/40 bg-white/10 text-xs font-bold text-white backdrop-blur-md">
-            {item.number}
-          </div>
-
-          {/* IMAGE CONTENT */}
-          <div className="absolute bottom-0 left-0 w-full p-6 sm:p-7">
-
-            <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#d5ea83]">
-              {item.category}
-            </p>
-
-            <h3
-              className={`max-w-md font-black leading-tight text-white ${
-                index === 0
-                  ? "text-3xl sm:text-4xl lg:text-5xl"
-                  : "text-2xl sm:text-3xl"
-              }`}
-            >
-              {item.title}
-            </h3>
-
-            <div className="mt-4 flex items-center gap-2 text-xs font-semibold text-white/80 transition-all duration-300 group-hover:gap-4">
-              Discover the story
-              <ArrowUpRight size={16} />
-            </div>
-
-          </div>
-
-          {/* HOVER BORDER */}
-          <div className="pointer-events-none absolute inset-0 rounded-[1.8rem] border border-white/0 transition duration-500 group-hover:border-[#d5ea83]/70" />
-
-        </article>
-      ))}
-
-    </div>
-
-    {/* BOTTOM CTA */}
-    <div
-      className={`mt-10 flex flex-col items-center justify-between gap-4 border-t pt-7 sm:flex-row ${
-        isDark ? "border-[#294333]" : "border-[#e5e9dc]"
-      }`}
-    >
-
-      <p
-        className={`text-sm ${
-          isDark ? "text-[#a5b5a6]" : "text-[#778478]"
+      {/* GALLERY */}
+      <section
+        id="gallery"
+        className={`relative overflow-hidden px-5 py-24 lg:px-8 lg:py-32 ${
+          isDark ? "bg-[#0d1c13]" : "bg-[#faf9f2]"
         }`}
       >
-        Every picture tells a story of kindness.
-      </p>
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-14 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="mb-5 flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-[#719b4e]">
+                <Leaf size={16} />
+                Our Community
+              </p>
 
-      <Link
-        href="/events"
-        className="inline-flex items-center gap-2 rounded-full bg-[#174c38] px-6 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-[#246647]"
-      >
-        Be Part of Our Story
-        <ArrowUpRight size={17} />
-      </Link>
+              <h2
+                className={`max-w-2xl text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl ${
+                  isDark ? "text-[#f3f3e9]" : "text-[#173f2c]"
+                }`}
+              >
+                Moments That
+                <span className="ml-3 font-serif font-normal italic text-[#719b4e]">
+                  Matter.
+                </span>
+              </h2>
+            </div>
 
-    </div>
+            <div className="max-w-md">
+              <p
+                className={`text-sm leading-8 sm:text-base ${
+                  isDark ? "text-[#a5b5a6]" : "text-[#778478]"
+                }`}
+              >
+                Real people. Real stories. Every helping hand creates
+                a little more hope and brings our community closer together.
+              </p>
 
-  </div>
-</section>
+              <div className="mt-5 flex items-center gap-2 text-sm font-bold text-[#719b4e]">
+                <span className="h-px w-10 bg-[#719b4e]" />
+                Stories of positive change
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-12">
+            {gallery.map((item, index) => (
+              <article
+                key={item.id}
+                className={`group relative isolate overflow-hidden rounded-[1.8rem] ${
+                  index === 0
+                    ? "min-h-[430px] sm:col-span-2 md:col-span-7 md:row-span-2 md:min-h-[590px]"
+                    : index === 1 || index === 2
+                      ? "min-h-[280px] sm:col-span-1 md:col-span-5"
+                      : "min-h-[280px] sm:col-span-1 md:col-span-6"
+                }`}
+              >
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  loading="lazy"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+
+                <div className="absolute inset-0 bg-gradient-to-t from-[#102b1b]/90 via-[#102b1b]/10 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-100" />
+
+                <div className="absolute right-5 top-5 flex h-10 w-10 items-center justify-center rounded-full border border-white/40 bg-white/10 text-xs font-bold text-white backdrop-blur-md">
+                  {item.number}
+                </div>
+
+                <div className="absolute bottom-0 left-0 w-full p-6 sm:p-7">
+                  <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#d5ea83]">
+                    {item.category}
+                  </p>
+
+                  <h3
+                    className={`max-w-md font-black leading-tight text-white ${
+                      index === 0
+                        ? "text-3xl sm:text-4xl lg:text-5xl"
+                        : "text-2xl sm:text-3xl"
+                    }`}
+                  >
+                    {item.title}
+                  </h3>
+
+                  <div className="mt-4 flex items-center gap-2 text-xs font-semibold text-white/80 transition-all duration-300 group-hover:gap-4">
+                    Discover the story
+                    <ArrowUpRight size={16} />
+                  </div>
+                </div>
+
+                <div className="pointer-events-none absolute inset-0 rounded-[1.8rem] border border-white/0 transition duration-500 group-hover:border-[#d5ea83]/70" />
+              </article>
+            ))}
+          </div>
+
+          <div
+            className={`mt-10 flex flex-col items-center justify-between gap-4 border-t pt-7 sm:flex-row ${
+              isDark ? "border-[#294333]" : "border-[#e5e9dc]"
+            }`}
+          >
+            <p
+              className={`text-sm ${
+                isDark ? "text-[#a5b5a6]" : "text-[#778478]"
+              }`}
+            >
+              Every picture tells a story of kindness.
+            </p>
+
+            <Link
+              href="/events"
+              className="inline-flex items-center gap-2 rounded-full bg-[#174c38] px-6 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-[#246647]"
+            >
+              Be Part of Our Story
+              <ArrowUpRight size={17} />
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {/* NEWSLETTER */}
       <section className={`px-5 py-24 ${
@@ -1351,7 +1299,7 @@ export default function Home() {
             </p>
 
             <Link
-              href={user ? "/create-event" : "/register"}
+              href={user ? "/create-event" : "/login"}
               className="mt-9 inline-flex items-center gap-3 rounded-full bg-[#d5ea83] px-8 py-4 font-black text-[#173f2c] transition hover:-translate-y-1 hover:bg-white"
             >
               {user ? "Create an Event" : "Join TogetherWe"}
