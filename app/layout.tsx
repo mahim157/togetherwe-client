@@ -18,6 +18,9 @@ export const metadata: Metadata = {
   title: "TogetherWe | Community Events Platform",
   description:
     "Discover community events, connect with volunteers, and make a positive difference together.",
+  verification: {
+    google: "Pu6pEtKF2QPL_Ni7fPU-0oiRyzlsWTAKzfngdwD1Vwo",
+  },
 };
 
 export default function RootLayout({
@@ -32,9 +35,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
-        <ThemeProvider>
-          {children}
-        </ThemeProvider>
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );
