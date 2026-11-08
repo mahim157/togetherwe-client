@@ -39,6 +39,10 @@ type Event = {
   image: string;
 };
 
+const API_URL = (
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+).replace(/\/$/, "");
+
 const categories = [
   "All Categories",
   "Donation",
@@ -104,13 +108,10 @@ export default function EventsPage() {
         setLoading(true);
         setError("");
 
-        const response = await fetch(
-          "http://localhost:5000/api/events",
-          {
-            method: "GET",
-            cache: "no-store",
-          }
-        );
+        const response = await fetch(`${API_URL}/api/events`, {
+          method: "GET",
+          cache: "no-store",
+        });
 
         if (!response.ok) {
           throw new Error("Failed to load events.");
@@ -188,7 +189,6 @@ export default function EventsPage() {
 
           {/* TOP BAR */}
           <div className="flex flex-wrap items-center justify-between gap-4">
-
             <Link
               href="/"
               className={`flex items-center gap-2 text-xl font-black tracking-tight ${
@@ -202,7 +202,6 @@ export default function EventsPage() {
             </Link>
 
             <div className="flex items-center gap-2 sm:gap-3">
-
               {/* BACK TO HOME BUTTON */}
               <Link
                 href="/"
@@ -234,7 +233,6 @@ export default function EventsPage() {
                   {isDark ? "Light Mode" : "Dark Mode"}
                 </span>
               </button>
-
             </div>
           </div>
 

@@ -23,6 +23,10 @@ import {
 
 import { authClient } from "@/lib/auth-client";
 
+const API_URL = (
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+).replace(/\/$/, "");
+
 const categories = [
   "Donation",
   "Social Work",
@@ -196,24 +200,23 @@ export default function CreateEventPage() {
 
       const token = tokenResult.data.token;
 
-      // Send event data to backend
-      const response = await fetch(
-        "http://localhost:5000/api/events",
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(eventData),
-        }
-      );
+      // Send event data to the backend
+      const response = await fetch(`${API_URL}/api/events`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(eventData),
+      });
 
-      const result = await response.json();
+      const result = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(result.message || "Failed to create event.");
+        throw new Error(
+          result?.message || "Failed to create event. Please try again."
+        );
       }
 
       setSuccess(true);
@@ -244,6 +247,7 @@ export default function CreateEventPage() {
             className="mx-auto animate-spin text-[#174c38]"
             size={36}
           />
+
           <p className="mt-4 text-sm font-medium text-[#778478]">
             Checking your account...
           </p>
@@ -265,6 +269,7 @@ export default function CreateEventPage() {
 
       {/* Background Decorations */}
       <div className="pointer-events-none absolute -right-32 top-0 h-96 w-96 rounded-full bg-[#d5ea83]/20 blur-3xl" />
+
       <div className="pointer-events-none absolute -bottom-40 -left-32 h-[450px] w-[450px] rounded-full bg-[#719b4e]/10 blur-3xl" />
 
       <div className="relative mx-auto max-w-4xl">
@@ -272,10 +277,7 @@ export default function CreateEventPage() {
         {/* Top Navigation */}
         <div className="mb-9 flex flex-wrap items-center justify-between gap-4">
 
-          <Link
-            href="/"
-            className="flex items-center gap-3"
-          >
+          <Link href="/" className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#174c38] text-[#d5ea83]">
               <Heart size={23} fill="currentColor" />
             </div>

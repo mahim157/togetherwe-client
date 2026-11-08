@@ -4,6 +4,7 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+
 import {
   Heart,
   User,
@@ -146,8 +147,8 @@ export default function RegisterPage() {
 
       const { error } = await authClient.signIn.social({
         provider: "google",
-        callbackURL: "http://localhost:3000/",
-        errorCallbackURL: "http://localhost:3000/login",
+        callbackURL: `${window.location.origin}/`,
+        errorCallbackURL: `${window.location.origin}/login`,
       });
 
       if (error) {
@@ -174,8 +175,8 @@ export default function RegisterPage() {
 
       const { error } = await authClient.signIn.social({
         provider: "github",
-        callbackURL: "http://localhost:3000/",
-        errorCallbackURL: "http://localhost:3000/login",
+        callbackURL: `${window.location.origin}/`,
+        errorCallbackURL: `${window.location.origin}/login`,
       });
 
       if (error) {
@@ -208,6 +209,7 @@ export default function RegisterPage() {
             <div className="rounded-xl bg-white/10 p-2.5">
               <Heart size={25} fill="currentColor" />
             </div>
+
             <span className="text-2xl font-extrabold tracking-tight">
               TogetherWe.
             </span>
@@ -240,6 +242,7 @@ export default function RegisterPage() {
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#d5ea83] text-sm font-bold text-[#174c38]">
                     ✓
                   </span>
+
                   <span className="text-green-50">{item}</span>
                 </div>
               ))}
@@ -265,6 +268,7 @@ export default function RegisterPage() {
                 size={27}
                 fill="currentColor"
               />
+
               <span className="text-2xl font-extrabold">
                 TogetherWe.
               </span>
@@ -375,6 +379,7 @@ export default function RegisterPage() {
                         }}
                       />
                     </div>
+
                     <p className="text-xs text-[#778478] dark:text-[#a5b5a6]">
                       Profile photo preview
                     </p>
@@ -443,6 +448,7 @@ export default function RegisterPage() {
                   ) : (
                     <CheckCircle2 size={18} className="mt-0.5 shrink-0" />
                   )}
+
                   <span>{message}</span>
                 </div>
               )}
@@ -470,9 +476,11 @@ export default function RegisterPage() {
             {/* Divider */}
             <div className="my-7 flex items-center gap-4">
               <div className="h-px flex-1 bg-[#e5e9dc] dark:bg-[#294333]" />
+
               <span className="text-sm text-[#778478] dark:text-[#a5b5a6]">
                 Or sign up with
               </span>
+
               <div className="h-px flex-1 bg-[#e5e9dc] dark:bg-[#294333]" />
             </div>
 
@@ -486,7 +494,11 @@ export default function RegisterPage() {
                 disabled={isAuthenticating}
                 className="flex items-center justify-center gap-2 rounded-full border border-[#e5e9dc] bg-white py-3 font-semibold text-[#173f2c] transition hover:bg-[#f0f4e8] disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#294333] dark:bg-[#0d1c13] dark:text-white dark:hover:bg-[#1b3526]"
               >
-                <svg viewBox="0 0 48 48" className="h-5 w-5" aria-hidden="true">
+                <svg
+                  viewBox="0 0 48 48"
+                  className="h-5 w-5"
+                  aria-hidden="true"
+                >
                   <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z" />
                   <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.25 5.48-4.73 7.18l7.72 5.99c4.51-4.18 7.05-10.34 7.05-17.64Z" />
                   <path fill="#FBBC05" d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.87.93 7.52 2.56 10.78l7.97-6.19Z" />
@@ -503,7 +515,11 @@ export default function RegisterPage() {
                 disabled={isAuthenticating}
                 className="flex items-center justify-center gap-2 rounded-full border border-[#e5e9dc] bg-white py-3 font-semibold text-[#173f2c] transition hover:bg-[#f0f4e8] disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#294333] dark:bg-[#0d1c13] dark:text-white dark:hover:bg-[#1b3526]"
               >
-                <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current" aria-hidden="true">
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-5 w-5 fill-current"
+                  aria-hidden="true"
+                >
                   <path d="M12 .9a11.1 11.1 0 0 0-3.51 21.63c.56.1.76-.24.76-.54v-2.1c-3.1.67-3.76-1.32-3.76-1.32-.51-1.3-1.24-1.65-1.24-1.65-1.01-.69.08-.68.08-.68 1.12.08 1.7 1.15 1.7 1.15.99 1.7 2.6 1.21 3.23.93.1-.72.39-1.21.7-1.49-2.47-.28-5.06-1.24-5.06-5.51 0-1.22.44-2.22 1.15-3-.12-.28-.5-1.42.11-2.96 0 0 .94-.3 3.05 1.15a10.6 10.6 0 0 1 5.56 0c2.11-1.45 3.05-1.15 3.05-1.15.61 1.54.23 2.68.11 2.96.72.78 1.15 1.78 1.15 3 0 4.28-2.6 5.23-5.08 5.5.4.35.75 1.02.75 2.06v3.06c0 .3.2.65.77.54A11.1 11.1 0 0 0 12 .9Z" />
                 </svg>
 

@@ -27,6 +27,10 @@ type Event = {
   volunteers: number;
 };
 
+const API_URL = (
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+).replace(/\/$/, "");
+
 export default function JoinedEventsPage() {
   const router = useRouter();
 
@@ -35,6 +39,8 @@ export default function JoinedEventsPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    let isMounted = true;
+
     async function fetchJoinedEvents() {
       try {
         setLoading(true);
@@ -52,7 +58,7 @@ export default function JoinedEventsPage() {
 
         // Fetch joined events using JWT
         const response = await fetch(
-          "http://localhost:5000/api/events/joined",
+          `${API_URL}/api/events/joined`,
           {
             method: "GET",
             credentials: "include",
@@ -63,34 +69,46 @@ export default function JoinedEventsPage() {
           }
         );
 
-        const result = await response.json();
+        const result = await response.json().catch(() => null);
 
         if (response.status === 401) {
           router.push("/login");
           return;
         }
 
-        if (!response.ok || !result.success) {
+        if (!response.ok || !result?.success) {
           throw new Error(
-            result.message || "Failed to load joined events"
+            result?.message || "Failed to load joined events."
           );
         }
 
-        setEvents(result.events || []);
+        if (isMounted) {
+          setEvents(
+            Array.isArray(result.events) ? result.events : []
+          );
+        }
       } catch (err) {
         console.error("Joined events error:", err);
 
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Something went wrong"
-        );
+        if (isMounted) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Something went wrong. Please try again."
+          );
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
     fetchJoinedEvents();
+
+    return () => {
+      isMounted = false;
+    };
   }, [router]);
 
   if (loading) {
@@ -121,6 +139,14 @@ export default function JoinedEventsPage() {
         {error && (
           <div className="rounded-xl bg-red-50 p-5 text-red-700">
             {error}
+
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="ml-3 font-semibold underline"
+            >
+              Try Again
+            </button>
           </div>
         )}
 
@@ -149,7 +175,7 @@ export default function JoinedEventsPage() {
           </div>
         )}
 
-        {events.length > 0 && (
+        {!error && events.length > 0 && (
           <>
             <div className="mb-6 flex items-center justify-between">
               <p className="font-medium text-gray-700">
@@ -215,7 +241,7 @@ export default function JoinedEventsPage() {
                           className="text-green-600"
                         />
 
-                        {event.volunteers} Volunteers
+                        {event.volunteers ?? 0} Volunteers
                       </div>
                     </div>
 

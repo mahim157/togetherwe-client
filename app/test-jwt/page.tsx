@@ -4,6 +4,10 @@
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 
+const API_URL = (
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+).replace(/\/$/, "");
+
 export default function TestJWTPage() {
   const [status, setStatus] = useState("Not tested yet");
   const [loading, setLoading] = useState(false);
@@ -29,31 +33,42 @@ export default function TestJWTPage() {
 
       // Step 2: Send JWT to protected API
       const response = await fetch(
-        "http://localhost:5000/api/jwt-test/protected",
+        `${API_URL}/api/jwt-test/protected`,
         {
           method: "GET",
+          credentials: "include",
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          cache: "no-store",
         }
       );
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
       // Step 3: Show verification result
       if (!response.ok) {
         setStatus(
-          `JWT Verification Failed: ${data.message || "Access denied"}`
+          `JWT Verification Failed: ${
+            data?.message || "Access denied"
+          }`
         );
         return;
       }
 
       setStatus(
-        `SUCCESS: ${data.message}\nUser: ${data.user?.name || "Unknown"}\nEmail: ${data.user?.email || "Unknown"}`
+        `SUCCESS: ${data?.message || "JWT verified successfully"}\nUser: ${
+          data?.user?.name || "Unknown"
+        }\nEmail: ${data?.user?.email || "Unknown"}`
       );
     } catch (error) {
       console.error("JWT test error:", error);
-      setStatus("ERROR: Check the browser console and server terminal.");
+
+      setStatus(
+        error instanceof Error
+          ? `ERROR: ${error.message}`
+          : "ERROR: Check the browser console and server terminal."
+      );
     } finally {
       setLoading(false);
     }
@@ -71,9 +86,10 @@ export default function TestJWTPage() {
         </p>
 
         <button
+          type="button"
           onClick={testJWT}
           disabled={loading}
-          className="mt-6 w-full rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+          className="mt-6 w-full rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? "Testing..." : "Test JWT Authentication"}
         </button>
@@ -83,7 +99,11 @@ export default function TestJWTPage() {
             Test Result:
           </p>
 
-          <p className="mt-2 whitespace-pre-line break-words text-sm text-slate-600 dark:text-slate-300">
+          <p
+            className="mt-2 whitespace-pre-line break-words text-sm text-slate-600 dark:text-slate-300"
+            role="status"
+            aria-live="polite"
+          >
             {status}
           </p>
         </div>

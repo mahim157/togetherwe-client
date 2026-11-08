@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+
 import {
   ArrowLeft,
   Plus,
@@ -42,7 +43,9 @@ type Toast = {
   type: "success" | "error";
 };
 
-const API_URL = "http://localhost:5000/api/events";
+const API_URL = (
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+).replace(/\/$/, "") + "/api/events";
 
 const categories = [
   "Donation",
@@ -116,7 +119,7 @@ export default function ManageEventsPage() {
         },
       });
 
-      const result = await response.json();
+      const result = await response.json().catch(() => null);
 
       if (response.status === 401) {
         router.push("/login");
@@ -124,10 +127,12 @@ export default function ManageEventsPage() {
       }
 
       if (!response.ok) {
-        throw new Error(result.message || "Failed to fetch your events");
+        throw new Error(
+          result?.message || "Failed to fetch your events"
+        );
       }
 
-      setEvents(result.events || []);
+      setEvents(result?.events || []);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Something went wrong"
@@ -138,8 +143,66 @@ export default function ManageEventsPage() {
   }
 
   useEffect(() => {
-    fetchMyEvents();
-  }, []);
+    let isMounted = true;
+
+    async function loadEvents() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const tokenResult = await authClient.token();
+
+        if (tokenResult.error || !tokenResult.data?.token) {
+          router.push("/login");
+          return;
+        }
+
+        const response = await fetch(`${API_URL}/my-events`, {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+          headers: {
+            Authorization: `Bearer ${tokenResult.data.token}`,
+          },
+        });
+
+        const result = await response.json().catch(() => null);
+
+        if (response.status === 401) {
+          router.push("/login");
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            result?.message || "Failed to fetch your events"
+          );
+        }
+
+        if (isMounted) {
+          setEvents(result?.events || []);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Something went wrong"
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadEvents();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [router]);
 
   async function handleUpdate(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -164,11 +227,17 @@ export default function ManageEventsPage() {
     }
 
     if (editingEvent.description.trim().length < 10) {
-      showToast("Description must be at least 10 characters.", "error");
+      showToast(
+        "Description must be at least 10 characters.",
+        "error"
+      );
       return;
     }
 
-    if (new Date(editingEvent.date + "T00:00:00") < new Date(getLocalDate() + "T00:00:00")) {
+    if (
+      new Date(editingEvent.date + "T00:00:00") <
+      new Date(getLocalDate() + "T00:00:00")
+    ) {
       showToast("Please select today or a future date.", "error");
       return;
     }
@@ -180,24 +249,27 @@ export default function ManageEventsPage() {
 
       if (!token) return;
 
-      const response = await fetch(`${API_URL}/${editingEvent._id}`, {
-        method: "PUT",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          title: editingEvent.title.trim(),
-          description: editingEvent.description.trim(),
-          category: editingEvent.category,
-          image: editingEvent.image.trim(),
-          location: editingEvent.location.trim(),
-          date: editingEvent.date,
-        }),
-      });
+      const response = await fetch(
+        `${API_URL}/${editingEvent._id}`,
+        {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            title: editingEvent.title.trim(),
+            description: editingEvent.description.trim(),
+            category: editingEvent.category,
+            image: editingEvent.image.trim(),
+            location: editingEvent.location.trim(),
+            date: editingEvent.date,
+          }),
+        }
+      );
 
-      const result = await response.json();
+      const result = await response.json().catch(() => null);
 
       if (response.status === 401) {
         router.push("/login");
@@ -205,7 +277,9 @@ export default function ManageEventsPage() {
       }
 
       if (!response.ok) {
-        throw new Error(result.message || "Failed to update event");
+        throw new Error(
+          result?.message || "Failed to update event"
+        );
       }
 
       setEvents((previousEvents) =>
@@ -220,7 +294,9 @@ export default function ManageEventsPage() {
       showToast("Event updated successfully!", "success");
     } catch (err) {
       showToast(
-        err instanceof Error ? err.message : "Failed to update event",
+        err instanceof Error
+          ? err.message
+          : "Failed to update event",
         "error"
       );
     } finally {
@@ -248,7 +324,7 @@ export default function ManageEventsPage() {
         },
       });
 
-      const result = await response.json();
+      const result = await response.json().catch(() => null);
 
       if (response.status === 401) {
         router.push("/login");
@@ -256,7 +332,9 @@ export default function ManageEventsPage() {
       }
 
       if (!response.ok) {
-        throw new Error(result.message || "Failed to delete event");
+        throw new Error(
+          result?.message || "Failed to delete event"
+        );
       }
 
       setEvents((previousEvents) =>
@@ -269,7 +347,9 @@ export default function ManageEventsPage() {
       setConfirmDeleteEvent(null);
 
       showToast(
-        err instanceof Error ? err.message : "Failed to delete event",
+        err instanceof Error
+          ? err.message
+          : "Failed to delete event",
         "error"
       );
     } finally {
@@ -282,6 +362,7 @@ export default function ManageEventsPage() {
       <main className="flex min-h-screen items-center justify-center bg-[#faf9f2] px-4 dark:bg-[#0d1c13]">
         <div className="text-center">
           <Loader2 className="mx-auto h-10 w-10 animate-spin text-[#174c38] dark:text-[#d5ea83]" />
+
           <p className="mt-4 font-medium text-[#778478] dark:text-[#a5b5a6]">
             Loading your events...
           </p>
@@ -293,13 +374,13 @@ export default function ManageEventsPage() {
   return (
     <main className="min-h-screen bg-[#faf9f2] px-4 py-10 text-[#173f2c] dark:bg-[#0d1c13] dark:text-[#edf4e9] sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-
         {/* Navbar */}
         <nav className="mb-12 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#174c38] text-white">
               <Heart size={21} fill="currentColor" />
             </div>
+
             <span className="text-xl font-extrabold tracking-tight">
               Together<span className="text-[#719b4e]">We.</span>
             </span>
@@ -368,6 +449,7 @@ export default function ManageEventsPage() {
                 <p className="text-sm font-medium text-[#778478] dark:text-[#a5b5a6]">
                   Total Events Created
                 </p>
+
                 <p className="mt-2 text-4xl font-extrabold text-[#174c38] dark:text-[#d5ea83]">
                   {events.length}
                 </p>
@@ -385,6 +467,7 @@ export default function ManageEventsPage() {
                 <p className="text-sm font-medium text-[#778478] dark:text-[#a5b5a6]">
                   Total Volunteers
                 </p>
+
                 <p className="mt-2 text-4xl font-extrabold text-[#174c38] dark:text-[#d5ea83]">
                   {events.reduce(
                     (total, event) => total + (event.volunteers || 0),
@@ -434,6 +517,7 @@ export default function ManageEventsPage() {
                 <h2 className="text-2xl font-extrabold">
                   Your Created Events
                 </h2>
+
                 <p className="mt-1 text-sm text-[#778478] dark:text-[#a5b5a6]">
                   Update or remove your published events.
                 </p>
@@ -474,17 +558,28 @@ export default function ManageEventsPage() {
 
                     <div className="mt-5 space-y-3 border-t border-[#e5e9dc] pt-5 text-sm text-[#778478] dark:border-[#294333] dark:text-[#a5b5a6]">
                       <div className="flex items-center gap-2">
-                        <MapPin size={17} className="shrink-0 text-[#719b4e]" />
-                        <span className="line-clamp-1">{event.location}</span>
+                        <MapPin
+                          size={17}
+                          className="shrink-0 text-[#719b4e]"
+                        />
+                        <span className="line-clamp-1">
+                          {event.location}
+                        </span>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <CalendarDays size={17} className="shrink-0 text-[#719b4e]" />
+                        <CalendarDays
+                          size={17}
+                          className="shrink-0 text-[#719b4e]"
+                        />
                         <span>{event.date}</span>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <Users size={17} className="shrink-0 text-[#719b4e]" />
+                        <Users
+                          size={17}
+                          className="shrink-0 text-[#719b4e]"
+                        />
                         <span>{event.volunteers || 0} Volunteers</span>
                       </div>
                     </div>
@@ -534,6 +629,7 @@ export default function ManageEventsPage() {
                 <p className="text-sm font-bold uppercase tracking-wider text-[#719b4e]">
                   Event Management
                 </p>
+
                 <h2 className="mt-1 text-2xl font-extrabold">
                   Edit Event
                 </h2>
@@ -555,6 +651,7 @@ export default function ManageEventsPage() {
                 <label className="mb-2 block text-sm font-bold">
                   Event Title
                 </label>
+
                 <input
                   type="text"
                   required
@@ -575,6 +672,7 @@ export default function ManageEventsPage() {
                 <label className="mb-2 block text-sm font-bold">
                   Description
                 </label>
+
                 <textarea
                   required
                   minLength={10}
@@ -595,6 +693,7 @@ export default function ManageEventsPage() {
                 <label className="mb-2 block text-sm font-bold">
                   Event Category
                 </label>
+
                 <select
                   required
                   value={editingEvent.category}
@@ -618,11 +717,13 @@ export default function ManageEventsPage() {
                 <label className="mb-2 block text-sm font-bold">
                   Thumbnail Image URL
                 </label>
+
                 <div className="relative">
                   <ImageIcon
                     size={18}
                     className="absolute left-4 top-1/2 -translate-y-1/2 text-[#719b4e]"
                   />
+
                   <input
                     type="url"
                     required
@@ -642,6 +743,7 @@ export default function ManageEventsPage() {
                 <label className="mb-2 block text-sm font-bold">
                   Location
                 </label>
+
                 <input
                   type="text"
                   required
@@ -661,6 +763,7 @@ export default function ManageEventsPage() {
                 <label className="mb-2 block text-sm font-bold">
                   Event Date
                 </label>
+
                 <input
                   type="date"
                   required
@@ -751,7 +854,7 @@ export default function ManageEventsPage() {
                 type="button"
                 onClick={handleDelete}
                 disabled={deletingId !== ""}
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-red-600 px-5 py-3 font-bold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-red-600 px-5 py-3 font-bold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {deletingId ? (
                   <>
@@ -805,6 +908,7 @@ export default function ManageEventsPage() {
               >
                 {toast.type === "success" ? "Success" : "Error"}
               </p>
+
               <p className="mt-0.5 text-sm text-[#778478] dark:text-[#a5b5a6]">
                 {toast.message}
               </p>
@@ -824,7 +928,13 @@ export default function ManageEventsPage() {
 
       {/* Footer */}
       <footer className="mx-auto mt-16 max-w-7xl border-t border-[#e5e9dc] py-7 text-center text-sm text-[#778478] dark:border-[#294333] dark:text-[#a5b5a6]">
-        Made with <Heart size={13} className="mx-1 inline text-[#719b4e]" fill="currentColor" /> for a better community.
+        Made with{" "}
+        <Heart
+          size={13}
+          className="mx-1 inline text-[#719b4e]"
+          fill="currentColor"
+        />{" "}
+        for a better community.
       </footer>
     </main>
   );
